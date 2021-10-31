@@ -20,10 +20,13 @@ const createUrlMatcher = (basepath, filePath) => {
   return (reqUrl) => reqUrl === urlMatcherString;
 };
 
-const createMiddlewareChain = (middlewareArray) => {
+const createMiddlewareChain = (middlewareArray, errorHandler) => {
   return (req, res) => {
     let index = 0;
-    const getNext = () => {
+    const getNext = (error) => {
+      if (error !== undefined) {
+        return errorHandler(error, req, res);
+      }
       index++;
       middlewareArray[index](req, res, getNext);
     };
@@ -34,13 +37,16 @@ const createMiddlewareChain = (middlewareArray) => {
 class QvistdevApi {
   constructor(basepath) {
     this.handlers = [];
+    this.errorHandler = null;
     this.server = http.createServer((req, res) => this.handleRequest(req, res));
     getRoutePaths(basepath).forEach((path) => {
       const methodsArrays = require(path);
       this.handlers.push({
         matcher: createUrlMatcher(basepath, path),
         methods: {
-          GET: createMiddlewareChain(methodsArrays.GET),
+          GET: createMiddlewareChain(methodsArrays.GET, (err, req, res) =>
+            this.errorHandler(err, req, res)
+          ),
         },
       });
     });
@@ -65,5 +71,11 @@ class QvistdevApi {
 }
 
 const qvistdevApi = new QvistdevApi("./api-paths");
+
+qvistdevApi.errorHandler = (error, req, res) => {
+  res.end(error);
+};
+
+console.log(qvistdevApi.handlers);
 
 qvistdevApi.listen(3000);
