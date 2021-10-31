@@ -13,20 +13,34 @@ const getRoutePaths = (basePath, pathsArray = []) => {
   return pathsArray;
 };
 
+console.log(getRoutePaths("./api-paths"));
+
+const createUrlMatcher = (basepath, filePath) => {
+  const urlMatcherString = filePath.replace(basepath, "").replace(/\.js$/, "");
+  return (reqUrl) => reqUrl === urlMatcherString;
+};
+
 class QvistdevApi {
   constructor(basepath) {
     this.handlers = [];
-    this.server = http.createServer(this.handleRequest);
+    this.server = http.createServer((req, res) => this.handleRequest(req, res));
     getRoutePaths(basepath).forEach((path) => {
       this.handlers.push({
-        matcher: (url) => url === path,
+        matcher: createUrlMatcher(basepath, path),
         methods: require(path),
       });
     });
   }
 
   handleRequest(req, res) {
-    res.end("Tjolaho");
+    const matchingHandler = this.handlers.find((handler) =>
+      handler.matcher(req.url)
+    );
+    if (matchingHandler && matchingHandler.methods[req.method]) {
+      matchingHandler.methods[req.method](req, res);
+    } else {
+      res.end("No matching handler");
+    }
   }
 
   listen(port) {
