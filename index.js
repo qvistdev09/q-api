@@ -17,8 +17,33 @@ const getRoutePaths = (basePath, pathsArray = []) => {
 console.log(getRoutePaths("./api-paths"));
 
 const createUrlMatcher = (basepath, filePath) => {
-  const urlMatcherString = filePath.replace(basepath, "").replace(/\.js$/, "");
-  return (reqUrl) => reqUrl.includes(urlMatcherString);
+  const cleanedPath = filePath.replace(basepath, "").replace(/\.js$/, "");
+  const parameters = cleanedPath.match(/{[a-zA-Z0-9]+}/g);
+
+  let urlRegexBase = cleanedPath;
+
+  if (Array.isArray(parameters)) {
+    parameters.forEach((param) => {
+      const cleanedParam = param.replace("{", "").replace("}", "");
+      urlRegexBase = urlRegexBase.replace(
+        param,
+        `(?<${cleanedParam}>[A-Za-z0-9]+)`
+      );
+    });
+
+    console.log(urlRegexBase, "urlregex base params");
+  }
+
+  console.log(urlRegexBase, "url regex base no params");
+
+  const matcherRegex = new RegExp(`^${urlRegexBase}$|\\?.*`);
+
+  console.log(matcherRegex, 'matcherregex')
+
+  return (reqUrl) => {
+    console.log(reqUrl.match(matcherRegex));
+    return matcherRegex.test(reqUrl);
+  };
 };
 
 const createMiddlewareChain = (middlewareArray, errorHandler) => {
@@ -46,6 +71,9 @@ class QvistdevApi {
         matcher: createUrlMatcher(basepath, path),
         methods: {
           GET: createMiddlewareChain(methodsArrays.GET, (err, req, res) =>
+            this.errorHandler(err, req, res)
+          ),
+          POST: createMiddlewareChain(methodsArrays.POST, (err, req, res) =>
             this.errorHandler(err, req, res)
           ),
         },

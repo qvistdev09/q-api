@@ -13,5 +13,9 @@ module.exports = {
       res.end("ending middleware now");
     },
   ],
-  POST: (req, res) => res.end("potato post path"),
+  POST: [
+    (req, res, next) => {
+      res.end(req.url);
+    },
+  ],
 };
