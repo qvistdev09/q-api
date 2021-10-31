@@ -20,14 +20,28 @@ const createUrlMatcher = (basepath, filePath) => {
   return (reqUrl) => reqUrl === urlMatcherString;
 };
 
+const createMiddlewareChain = (middlewareArray) => {
+  return (req, res) => {
+    let index = 0;
+    const getNext = () => {
+      index++;
+      middlewareArray[index](req, res, getNext);
+    };
+    middlewareArray[index](req, res, getNext);
+  };
+};
+
 class QvistdevApi {
   constructor(basepath) {
     this.handlers = [];
     this.server = http.createServer((req, res) => this.handleRequest(req, res));
     getRoutePaths(basepath).forEach((path) => {
+      const methodsArrays = require(path);
       this.handlers.push({
         matcher: createUrlMatcher(basepath, path),
-        methods: require(path),
+        methods: {
+          GET: createMiddlewareChain(methodsArrays.GET),
+        },
       });
     });
   }
