@@ -1,30 +1,30 @@
 class QField {
   constructor() {
-    this.validators = [];
+    this.fieldValidators = [];
   }
 
   string() {
-    this.validators.push((value) => typeof value === "string");
+    this.fieldValidators.push((value) => typeof value === "string");
     return this;
   }
 
   minimumLength(length) {
-    this.validators.push((value) => value.length >= length);
+    this.fieldValidators.push((value) => value.length >= length);
     return this;
   }
 
   maximumLength(length) {
-    this.validators.push((value) => value.length <= length);
+    this.fieldValidators.push((value) => value.length <= length);
     return this;
   }
 
   enum(array) {
-    this.validators.push((value) => array.includes(value));
+    this.fieldValidators.push((value) => array.includes(value));
     return this;
   }
 
   validate(value) {
-    return this.validators.every((validator) => validator(value) === true);
+    return this.fieldValidators.every((validator) => validator(value) === true);
   }
 }
 
@@ -45,36 +45,45 @@ const isObject = (value) => {
   return typeof value === "object" && !Array.isArray(value) && value !== null;
 };
 
-const confirmPathExists = (object, pathArray) => {
+const getNestedValue = (object, pathArray) => {
   if (pathArray.length === 1) {
-    return (
-      !isObject(object[pathArray[0]]) && object[pathArray[0]] !== undefined
-    );
+    if (isObject(object) && !isObject(object[pathArray[0]])) {
+      return object[pathArray[0]] !== undefined ? object[pathArray[0]] : null;
+    } else {
+      return null;
+    }
   }
   if (!isObject(object[pathArray[0]])) {
-    return false;
+    return null;
   }
-  return confirmPathExists(object[pathArray[0]], pathArray.slice(1));
+  return getNestedValue(object[pathArray[0]], pathArray.slice(1));
 };
 
-const validatorsFromObject = (object, basePath = "", pathsArray = []) => {
+const validatorsFromObject = (object, paths = [], validators = []) => {
   const keys = Object.keys(object);
   keys.forEach((key) => {
     if (object[key] instanceof QField) {
-      pathsArray.push({
-        path: `${basePath}${key}`,
-        value: object[key],
+      validators.push({
+        pathArray: [...paths, key],
+        validator: object[key],
       });
     } else {
-      validatorsFromObject(object[key], `${basePath}${key}.`, pathsArray);
+      paths.push(key);
+      validatorsFromObject(object[key], paths, validators);
     }
   });
-  return pathsArray;
+  return validators;
 };
 
 const stringTest = new QField().string().enum(["oscar", "potatis"]);
 
-const dogValidation = {
+class QVal {
+  constructor(schema) {
+    this.validators = validatorsFromObject(schema);
+  }
+}
+
+const dogValidator = new QVal({
   name: new QField().string(),
   bestFriend: new QField().enum(["peter", "amanda"]),
   favorites: {
@@ -86,10 +95,4 @@ const dogValidation = {
       },
     },
   },
-};
-
-class QVal {
-  constructor(schema) {}
-}
-
-console.log(validatorsFromObject(dogValidation));
+});
