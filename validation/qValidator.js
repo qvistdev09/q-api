@@ -27,10 +27,6 @@ const confirmPathExists = (object, pathArray) => {
   return confirmPathExists(object[pathArray[0]], pathArray.slice(1));
 };
 
-console.log(
-  confirmPathExists(testObject, ["hey"])
-);
-
 const getObjectPaths = (object, basePath = "", pathsArray = []) => {
   const keys = Object.keys(object);
   keys.forEach((key) => {
@@ -45,3 +41,37 @@ const getObjectPaths = (object, basePath = "", pathsArray = []) => {
   });
   return pathsArray;
 };
+
+class QVal {
+  constructor() {
+    this.validators = [];
+  }
+
+  string() {
+    this.validators.push((value) => typeof value === "string");
+    return this;
+  }
+
+  minimumLength(length) {
+    this.validators.push((value) => value.length >= length);
+    return this;
+  }
+
+  maximumLength(length) {
+    this.validators.push((value) => value.length <= length);
+    return this;
+  }
+
+  enum(array) {
+    this.validators.push((value) => array.includes(value));
+    return this;
+  }
+
+  validate(value) {
+    return this.validators.every((validator) => validator(value) === true);
+  }
+}
+
+const stringTest = new QVal().string().enum(["oscar", "potatis"]);
+
+console.log(stringTest.validate("fdsfds"));
