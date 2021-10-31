@@ -81,6 +81,15 @@ class QVal {
   constructor(schema) {
     this.validators = validatorsFromObject(schema);
   }
+
+  validate(dataStructure) {
+    const errors = [];
+    const checkValuesArray = this.validators.map((validator) => ({
+      ...validator,
+      value: getNestedValue(dataStructure, validator.pathArray),
+    }));
+    return checkValuesArray;
+  }
 }
 
 const dogValidator = new QVal({
@@ -96,3 +105,12 @@ const dogValidator = new QVal({
     },
   },
 });
+
+console.log(
+  dogValidator.validate({
+    name: "Fido",
+    favorites: {
+      food: "sushi",
+    },
+  })
+);
