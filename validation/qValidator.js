@@ -80,6 +80,11 @@ const dogValidation = {
   favorites: {
     food: new QField().string(),
     drink: new QField().string(),
+    supernested: {
+      evenmore: {
+        test: new QField().string(),
+      },
+    },
   },
 };
 
