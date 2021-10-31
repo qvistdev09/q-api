@@ -1,5 +1,6 @@
 const FS = require("fs");
 const http = require("http");
+const url = require("url");
 
 const getRoutePaths = (basePath, pathsArray = []) => {
   const directoryContents = FS.readdirSync(basePath);
@@ -17,7 +18,7 @@ console.log(getRoutePaths("./api-paths"));
 
 const createUrlMatcher = (basepath, filePath) => {
   const urlMatcherString = filePath.replace(basepath, "").replace(/\.js$/, "");
-  return (reqUrl) => reqUrl === urlMatcherString;
+  return (reqUrl) => reqUrl.includes(urlMatcherString);
 };
 
 const createMiddlewareChain = (middlewareArray, errorHandler) => {
@@ -52,11 +53,17 @@ class QvistdevApi {
     });
   }
 
+  parseQuery(req) {
+    req.query = url.parse(req.url, true).query;
+  }
+
   handleRequest(req, res) {
     const matchingHandler = this.handlers.find((handler) =>
       handler.matcher(req.url)
     );
     if (matchingHandler && matchingHandler.methods[req.method]) {
+      this.parseQuery(req);
+      console.log(req.query);
       matchingHandler.methods[req.method](req, res);
     } else {
       res.end("No matching handler");
