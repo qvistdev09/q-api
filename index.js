@@ -63,8 +63,19 @@ class QvistdevApi {
     );
     if (matchingHandler && matchingHandler.methods[req.method]) {
       this.parseQuery(req);
-      console.log(req.query);
-      matchingHandler.methods[req.method](req, res);
+      let bodyString = "";
+      req.on("data", (chunk) => {
+        bodyString += chunk.toString();
+      });
+      req.on("end", () => {
+        try {
+          const jsonBody = JSON.parse(bodyString);
+          req.body = jsonBody;
+          matchingHandler.methods[req.method](req, res);
+        } catch (err) {
+          matchingHandler.methods[req.method](req, res);
+        }
+      });
     } else {
       res.end("No matching handler");
     }

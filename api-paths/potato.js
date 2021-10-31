@@ -6,6 +6,7 @@ module.exports = {
     },
     (req, res, next) => {
       console.log("Doing some more stuff");
+      console.log(req.body);
       next();
     },
     (req, res, next) => {
