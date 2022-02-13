@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsc"
   },
   "repository": {
     "type": "git",
@@ -16,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/qvistdev09/qvistdev-api/issues"
   },
-  "homepage": "https://github.com/qvistdev09/qvistdev-api#readme"
+  "homepage": "https://github.com/qvistdev09/qvistdev-api#readme",
+  "dependencies": {
+    "typescript": "^4.5.5"
+  }
 }
