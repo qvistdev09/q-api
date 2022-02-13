@@ -16,7 +16,7 @@ export class Q_API {
 
   constructor(basePath: string, errorHandler: (req: Qreq, res: Qres) => void) {
     this.handlers = [];
-    this.server = http.createServer(this.handleRequest);
+    this.server = http.createServer((req, res) => this.handleRequest(req, res));
     this.errorHandler = errorHandler;
     getNestedContents(basePath).forEach((file) => {
       const routeConfig = require(file) as RouteConfig;
@@ -65,7 +65,7 @@ export class Q_API {
       return this.noRoute(res);
     }
 
-    let bodyString: any;
+    let bodyString = "";
     req.on("data", (chunk) => {
       bodyString += chunk.toString();
     });
@@ -78,6 +78,7 @@ export class Q_API {
         const qRes = new Qres(res);
         routeMiddleware(qReq, qRes);
       } catch (err) {
+        console.log(err);
         this.badRequest(res, "Invalid request: malformed JSON");
       }
     });
