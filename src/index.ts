@@ -1,7 +1,13 @@
 import http from "http";
 import url from "url";
+import { httpMethods } from "./features/consts";
 import { Qreq, Qres } from "./features/request";
-import { HttpMethod, MiddleWare, RequestHandler } from "./types";
+import {
+  createRouteHandler,
+  createUrlMatcherFunction,
+  getNestedContents,
+} from "./features/routing";
+import { HttpMethod, MiddleWare, RequestHandler, RouteConfig } from "./types";
 
 export class Q_API {
   handlers: Array<RequestHandler>;
@@ -12,6 +18,20 @@ export class Q_API {
     this.handlers = [];
     this.server = http.createServer(this.handleRequest);
     this.errorHandler = errorHandler;
+    getNestedContents(basePath).forEach((file) => {
+      const routeConfig = require(file) as RouteConfig;
+      const routeHandler: RequestHandler = {
+        matcher: createUrlMatcherFunction(basePath, file),
+        methods: {},
+      };
+      httpMethods.forEach((method) => {
+        if (routeConfig[method]) {
+          const middlewares = routeConfig[method] as Array<MiddleWare>;
+          routeHandler.methods[method] = createRouteHandler(middlewares, this.errorHandler);
+        }
+      });
+      this.handlers.push(routeHandler);
+    });
   }
 
   badRequest(res: http.ServerResponse, message: string) {
@@ -22,27 +42,6 @@ export class Q_API {
   noRoute(res: http.ServerResponse) {
     res.writeHead(404, { "Content-Type": "application/json" });
     res.end(JSON.stringify({ error: "No matching route" }));
-  }
-
-  runNextMiddleware(chain: Array<MiddleWare>, index: number, req: Qreq, res: Qres) {
-    const scheduledMiddleware = chain[index];
-    index++;
-    if (scheduledMiddleware) {
-      scheduledMiddleware(req, res, (error) => {
-        if (error) {
-          this.errorHandler(req, res);
-          return;
-        }
-        this.runNextMiddleware(chain, index, req, res);
-      });
-    }
-  }
-
-  createRouteHandler(chain: Array<MiddleWare>) {
-    return (req: Qreq, res: Qres) => {
-      let index = 0;
-      this.runNextMiddleware(chain, index, req, res);
-    };
   }
 
   handleRequest(req: http.IncomingMessage, res: http.ServerResponse) {
@@ -56,7 +55,13 @@ export class Q_API {
       (requestHandler) => requestHandler.matcher(requestUrl).match
     );
 
-    if (!matchingHandler || !matchingHandler.methods[requestMethod]) {
+    if (!matchingHandler) {
+      return this.noRoute(res);
+    }
+
+    const routeMiddleware = matchingHandler.methods[requestMethod];
+
+    if (!routeMiddleware) {
       return this.noRoute(res);
     }
 
@@ -68,9 +73,19 @@ export class Q_API {
       try {
         const reqBody = JSON.parse(bodyString);
         const reqQuery = url.parse(requestUrl, true).query;
+        const reqParams = matchingHandler.matcher(requestUrl).params || {};
+        const qReq = new Qreq(reqBody, reqQuery, reqParams);
+        const qRes = new Qres(res);
+        routeMiddleware(qReq, qRes);
       } catch (err) {
         this.badRequest(res, "Invalid request: malformed JSON");
       }
+    });
+  }
+
+  listen(port: number) {
+    this.server.listen(port, () => {
+      console.log(`Qvistdev API is listening on port ${port}`);
     });
   }
 }
