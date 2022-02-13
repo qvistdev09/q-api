@@ -1,4 +1,5 @@
 import FS from "fs";
+import { UrlMatcherResult } from "../../types";
 
 const indexRecursively = (basePath: string, pathsArray: Array<string>) => {
   const directoryContents = FS.readdirSync(basePath);
@@ -14,15 +15,6 @@ const indexRecursively = (basePath: string, pathsArray: Array<string>) => {
 };
 
 export const getNestedContents = (basePath: string) => indexRecursively(basePath, []);
-
-interface ParamsMatch {
-  [paramIdentifier: string]: string;
-}
-
-interface UrlMatcherResult {
-  match: boolean;
-  params?: ParamsMatch;
-}
 
 export const createUrlMatcherFunction = (
   basePath: string,
