@@ -19,5 +19,8 @@
   "homepage": "https://github.com/qvistdev09/qvistdev-api#readme",
   "dependencies": {
     "typescript": "^4.5.5"
+  },
+  "devDependencies": {
+    "@types/node": "^17.0.17"
   }
 }
