@@ -9,17 +9,25 @@ export interface UrlMatcherResult {
   params?: ParamsMatch;
 }
 
-export type MiddleWare = (req: Qreq, res: Qres, next: (error?: any) => void) => void;
+export type MiddleWare = (req: Qreq, res: Qres, next?: (error?: any) => void) => void;
 
 export interface RequestHandler {
   matcher: (requestUrl: string) => UrlMatcherResult;
   methods: {
-    GET?: Array<MiddleWare>;
-    POST?: Array<MiddleWare>;
-    PUT?: Array<MiddleWare>;
-    PATCH?: Array<MiddleWare>;
-    DELETE?: Array<MiddleWare>;
+    GET?: MiddleWare;
+    POST?: MiddleWare;
+    PUT?: MiddleWare;
+    PATCH?: MiddleWare;
+    DELETE?: MiddleWare;
   };
 }
 
-export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+export type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
+
+export interface RouteConfig {
+  GET?: Array<MiddleWare>;
+  POST?: Array<MiddleWare>;
+  PUT?: Array<MiddleWare>;
+  PATCH?: Array<MiddleWare>;
+  DELETE?: Array<MiddleWare>;
+}
