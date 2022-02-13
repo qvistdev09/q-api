@@ -1,4 +1,4 @@
-import { Qreq, Qres } from "./features/request";
+import { Request, Response } from "./features/context";
 
 export interface ParamsMatch {
   [paramIdentifier: string]: string;
@@ -9,7 +9,7 @@ export interface UrlMatcherResult {
   params?: ParamsMatch;
 }
 
-export type MiddleWare = (req: Qreq, res: Qres, next?: (error?: any) => void) => void;
+export type MiddleWare = (req: Request, res: Response, next?: (error?: any) => void) => void;
 
 export interface RequestHandler {
   matcher: (requestUrl: string) => UrlMatcherResult;

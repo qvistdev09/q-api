@@ -1,12 +1,12 @@
 import FS from "fs";
 import { MiddleWare, UrlMatcherResult } from "../../types";
-import { Qreq, Qres } from "../request";
+import { Request, Response } from "../context";
 
 const runNextMiddleware = (
   chain: Array<MiddleWare>,
   index: number,
-  req: Qreq,
-  res: Qres,
+  req: Request,
+  res: Response,
   errorHandler: MiddleWare
 ) => {
   const scheduledMiddleware = chain[index];
@@ -26,7 +26,7 @@ export const createRouteHandler = (
   chain: Array<MiddleWare>,
   errorHandler: MiddleWare
 ): MiddleWare => {
-  return (req: Qreq, res: Qres) => {
+  return (req: Request, res: Response) => {
     let index = 0;
     runNextMiddleware(chain, index, req, res, errorHandler);
   };

@@ -1,6 +1,6 @@
 import http from "http";
 
-export class Qres {
+export class Response {
   httpRes: http.ServerResponse;
   statusCode: number | null;
 
@@ -20,7 +20,7 @@ export class Qres {
   }
 }
 
-export class Qreq {
+export class Request {
   body: object;
   query: object;
   params: object;
