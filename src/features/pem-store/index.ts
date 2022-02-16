@@ -39,7 +39,6 @@ export class PemStore {
         resolve(this.pem);
         return;
       }
-      console.log("fetching");
       const req = https.request(
         { hostname: this.auth0HostName, path: "/PEM", method: "GET" },
         (res) => {
