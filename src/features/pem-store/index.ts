@@ -2,19 +2,44 @@ import https from "https";
 
 interface PemConfig {
   auth0HostName: string;
+  cacheLimit: number;
 }
 
-class PemStore {
+export class PemStore {
   pem: string | null;
   auth0HostName: string;
+  cacheLimit: number;
+  fetchedAt: Date | null;
 
-  constructor({ auth0HostName }: PemConfig) {
+  constructor({ auth0HostName, cacheLimit }: PemConfig) {
     this.pem = null;
     this.auth0HostName = auth0HostName;
+    this.cacheLimit = cacheLimit;
+    this.fetchedAt = null;
+  }
+
+  cacheExpired(): Boolean {
+    if (!this.fetchedAt) {
+      return true;
+    }
+    const cacheAge = new Date().getTime() - this.fetchedAt.getTime();
+    return cacheAge > this.cacheLimit;
+  }
+
+  shouldRefetch(): Boolean {
+    if (this.cacheExpired() || !this.pem) {
+      return true;
+    }
+    return false;
   }
 
   getPem(): Promise<string> {
     return new Promise((resolve, reject) => {
+      if (!this.shouldRefetch() && this.pem) {
+        resolve(this.pem);
+        return;
+      }
+      console.log("fetching");
       const req = https.request(
         { hostname: this.auth0HostName, path: "/PEM", method: "GET" },
         (res) => {
@@ -23,17 +48,15 @@ class PemStore {
             data.push(chunk);
           });
           res.on("end", () => {
-            resolve(Buffer.concat(data).toString());
+            this.pem = Buffer.concat(data).toString();
+            this.fetchedAt = new Date();
+            resolve(this.pem);
           });
+          res.on("error", reject);
         }
       );
       req.on("error", reject);
+      req.end();
     });
   }
 }
-
-const pemStore = new PemStore({ auth0HostName: "qvistdev09.eu.auth0.com" });
-
-pemStore.getPem().then((pem) => {
-  console.log(pem);
-});
