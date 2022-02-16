@@ -41,3 +41,10 @@ export interface DecodedUser {
   azp: string;
   scope: string;
 }
+
+export interface ValidationError {
+  property: string;
+  error: string;
+}
+
+export type PropertyValidator = (identifier: string, value: any) => ValidationError | null;
