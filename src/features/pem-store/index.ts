@@ -6,10 +6,10 @@ interface PemConfig {
 }
 
 export class PemStore {
-  pem: string | null;
-  auth0HostName: string;
-  cacheLimit: number;
-  fetchedAt: Date | null;
+  private pem: string | null;
+  private auth0HostName: string;
+  private cacheLimit: number;
+  private fetchedAt: Date | null;
 
   constructor({ auth0HostName, cacheLimit }: PemConfig) {
     this.pem = null;
@@ -18,7 +18,7 @@ export class PemStore {
     this.fetchedAt = null;
   }
 
-  cacheExpired(): Boolean {
+  private cacheExpired(): Boolean {
     if (!this.fetchedAt) {
       return true;
     }
@@ -26,7 +26,7 @@ export class PemStore {
     return cacheAge > this.cacheLimit;
   }
 
-  shouldRefetch(): Boolean {
+  private shouldRefetch(): Boolean {
     if (this.cacheExpired() || !this.pem) {
       return true;
     }
