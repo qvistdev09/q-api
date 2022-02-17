@@ -1,6 +1,6 @@
 import { PropertyValidator, ValidationError } from "../../types";
 
-class QBaseValidator {
+export class QBaseValidator {
   tests: Array<PropertyValidator>;
   constructor() {
     this.tests = [];
@@ -92,7 +92,7 @@ export class QString extends QBaseValidator {
   }
 }
 
-class QNumber extends QBaseValidator {
+export class QNumber extends QBaseValidator {
   constructor() {
     super();
     this.tests.push((identifier, value) => {
