@@ -1,4 +1,5 @@
-import { PropertyValidator, ValidationError } from "../../types";
+import { PairedValidator, PropertyValidator, ValidationError } from "../../types";
+import { getNestedValue, getValidatorsRecursively } from "./modules/utils";
 
 export class QBaseValidator {
   tests: Array<PropertyValidator>;
@@ -149,5 +150,23 @@ export class QNumber extends QBaseValidator {
       };
     });
     return this;
+  }
+}
+
+export class QSchema {
+  validators: PairedValidator[];
+  constructor(schema: any) {
+    this.validators = getValidatorsRecursively(schema);
+  }
+
+  validateObject(object: any) {
+    return this.validators
+      .map((pairedValidator) =>
+        pairedValidator.validator.testValue(
+          pairedValidator.path.join("."),
+          getNestedValue(object, pairedValidator.path)
+        )
+      )
+      .flat();
   }
 }
