@@ -50,4 +50,7 @@ export interface ValidationError {
 
 export type PropertyValidator = (identifier: string, value: any) => ValidationError | null;
 
-export type ValidationSchema = QBaseValidator | { [key: string]: ValidationSchema };
+export interface PairedValidator {
+  validator: QBaseValidator;
+  path: Array<string>;
+}
