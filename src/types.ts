@@ -1,4 +1,5 @@
 import { Request, Response } from "./features/context";
+import { QBaseValidator } from "./features/validation";
 
 export interface ParamsMatch {
   [paramIdentifier: string]: string;
@@ -48,3 +49,5 @@ export interface ValidationError {
 }
 
 export type PropertyValidator = (identifier: string, value: any) => ValidationError | null;
+
+export type ValidationSchema = QBaseValidator | { [key: string]: ValidationSchema };
