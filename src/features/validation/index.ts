@@ -13,7 +13,7 @@ class QBaseValidator {
   }
 }
 
-class QString extends QBaseValidator {
+export class QString extends QBaseValidator {
   constructor() {
     super();
     this.tests.push((identifier: string, value: any) => {
@@ -32,13 +32,61 @@ class QString extends QBaseValidator {
       if (typeof value !== "string") {
         return null;
       }
-      if (value.length > length) {
-        return {
-          property: identifier,
-          error: `Length error: string cannot be longer than ${length} characters`,
-        };
+      if (value.length <= length) {
+        return null;
       }
-      return null;
+      return {
+        property: identifier,
+        error: `Length error: string cannot be longer than ${length} characters`,
+      };
+    });
+    return this;
+  }
+
+  minLength(length: number) {
+    this.tests.push((identifier, value) => {
+      if (typeof value !== "string") {
+        return null;
+      }
+      if (value.length >= length) {
+        return null;
+      }
+      return {
+        property: identifier,
+        error: `Length error: string must be at least ${length} characters`,
+      };
+    });
+    return this;
+  }
+
+  enum(acceptedValues: Array<string>) {
+    this.tests.push((identifier, value) => {
+      if (typeof value !== "string") {
+        return null;
+      }
+      if (acceptedValues.includes(value)) {
+        return null;
+      }
+      return {
+        property: identifier,
+        error: `Enum error: string must be one of [${acceptedValues.join(" | ")}]`,
+      };
+    });
+    return this;
+  }
+
+  regexTest(regex: RegExp, onError: string) {
+    this.tests.push((identifier, value) => {
+      if (typeof value !== "string") {
+        return null;
+      }
+      if (regex.test(value)) {
+        return null;
+      }
+      return {
+        property: identifier,
+        error: onError,
+      };
     });
     return this;
   }
