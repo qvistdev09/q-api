@@ -91,3 +91,63 @@ export class QString extends QBaseValidator {
     return this;
   }
 }
+
+class QNumber extends QBaseValidator {
+  constructor() {
+    super();
+    this.tests.push((identifier, value) => {
+      if (typeof value === "number") {
+        return null;
+      }
+      return {
+        property: identifier,
+        error: "Type error: value is not a number",
+      };
+    });
+  }
+
+  isInteger() {
+    this.tests.push((identifier, value) => {
+      if (Number.isInteger(value)) {
+        return null;
+      }
+      return {
+        property: identifier,
+        error: "Value must be integer",
+      };
+    });
+    return this;
+  }
+
+  lesserThan(threshold: number) {
+    this.tests.push((identifier, value) => {
+      if (typeof value !== "number") {
+        return null;
+      }
+      if (value < threshold) {
+        return null;
+      }
+      return {
+        property: identifier,
+        error: `Number must be lesser than ${threshold}`,
+      };
+    });
+    return this;
+  }
+
+  greaterThan(threshold: number) {
+    this.tests.push((identifier, value) => {
+      if (typeof value !== "number") {
+        return null;
+      }
+      if (value > threshold) {
+        return null;
+      }
+      return {
+        property: identifier,
+        error: `Number must be greater than ${threshold}`,
+      };
+    });
+    return this;
+  }
+}
