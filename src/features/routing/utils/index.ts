@@ -1,5 +1,5 @@
 import { Middleware } from "../../middleware";
-import { SegmentedMiddlewares } from "../types";
+import { SegmentedMiddlewareFunctions } from "../types";
 
 export const assertRequiredDependencies = (middlewares: Middleware[]) => {
   middlewares.forEach((middleware) => {
@@ -13,9 +13,9 @@ export const assertRequiredDependencies = (middlewares: Middleware[]) => {
   });
 };
 
-export const segmentDependencies = (middlewares: Middleware[]): SegmentedMiddlewares => {
+export const segmentDependencies = (middlewares: Middleware[]): SegmentedMiddlewareFunctions => {
   let remainingMiddlewares = [...middlewares];
-  const segments: SegmentedMiddlewares = [[]];
+  const segments: Array<Middleware[]> = [[]];
   while (remainingMiddlewares.length > 0) {
     let iteration = [...remainingMiddlewares];
     remainingMiddlewares.forEach((middleware) => {
@@ -41,7 +41,7 @@ export const segmentDependencies = (middlewares: Middleware[]): SegmentedMiddlew
     });
     remainingMiddlewares = iteration;
   }
-  return segments;
+  return segments.map((segment) => segment.map((middleware) => middleware.middlewareFunction));
 };
 
 const runNextMiddleware = (
