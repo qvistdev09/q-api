@@ -1,3 +1,3 @@
-import { Middleware } from "../../middleware";
+import { MiddlewareFunction } from "../../middleware/types";
 
-export type SegmentedMiddlewares = Array<Middleware[]>;
+export type SegmentedMiddlewareFunctions = Array<MiddlewareFunction[]>;

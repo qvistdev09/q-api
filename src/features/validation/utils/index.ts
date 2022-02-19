@@ -1,5 +1,5 @@
-import { QBaseValidator } from "..";
-import { PairedValidator } from "../../../types";
+import { QBaseValidator } from "../classes";
+import { PairedValidator } from "../types";
 
 const isObject = (value: any) => {
   return typeof value === "object" && !Array.isArray(value) && value !== null;
