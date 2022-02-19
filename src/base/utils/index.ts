@@ -1,3 +1,6 @@
+import FS from "fs";
+import { UrlMatcherResult } from "../types";
+
 const indexRecursively = (basePath: string, pathsArray: Array<string>) => {
   const directoryContents = FS.readdirSync(basePath);
   directoryContents.forEach((content) => {
