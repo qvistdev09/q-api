@@ -1,6 +1,18 @@
 import { Middleware } from "../../middleware";
 import { SegmentedMiddlewares } from "../types";
 
+export const assertRequiredDependencies = (middlewares: Middleware[]) => {
+  middlewares.forEach((middleware) => {
+    middleware.dependencies.forEach((dependency) => {
+      if (!middlewares.some((includedDependency) => includedDependency === dependency)) {
+        throw new Error(
+          `Middleware dependency missing: ${dependency.middlewareFunction.toString()}`
+        );
+      }
+    });
+  });
+};
+
 export const segmentDependencies = (middlewares: Middleware[]): SegmentedMiddlewares => {
   let remainingMiddlewares = [...middlewares];
   const segments: SegmentedMiddlewares = [[]];
