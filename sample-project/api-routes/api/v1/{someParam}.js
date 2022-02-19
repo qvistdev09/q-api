@@ -1,11 +1,9 @@
-module.exports = {
-  GET: [
-    (req, res, next) => {
-      res.locals = { data: "some data" };
-      next();
-    },
-    (req, res, next) => {
-      res.status(200).json(res.locals);
-    },
-  ],
-};
+const Q = require("../../../../dist").default;
+const middlewares = require("../../../middlewares");
+
+module.exports.GET = Q.createRoute([
+  middlewares.setupLocals,
+  middlewares.getUserData,
+  middlewares.createEvent,
+  middlewares.createResponse,
+]);
