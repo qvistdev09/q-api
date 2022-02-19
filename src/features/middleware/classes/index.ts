@@ -12,6 +12,7 @@ export class Middleware {
 
   dependsOn(dependencies: Middleware[]) {
     this.dependencies = dependencies;
+    return this;
   }
 
   async run(req: Request, res: Response) {
