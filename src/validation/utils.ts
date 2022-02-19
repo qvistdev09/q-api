@@ -42,3 +42,23 @@ export const getValidatorsRecursively = (
   });
   return validators;
 };
+
+export const indexObjectProperties = (
+  object: any,
+  paths: string[] = [],
+  properties: string[] = []
+) => {
+  if (!isObject(object)) {
+    return properties;
+  }
+  Object.keys(object).forEach((key) => {
+    const nextValue = object[key];
+    if (!isObject(nextValue)) {
+      properties.push([...paths, key].join("."));
+    } else {
+      paths.push(key);
+      indexObjectProperties(object[key], paths, properties);
+    }
+  });
+  return properties;
+};
