@@ -2,6 +2,7 @@ import { DecodedUser, PemConfig } from "./types";
 import crypto from "crypto";
 import https from "https";
 import http from "http";
+import { createError } from "../errors";
 
 export class PemStore {
   private pem: string | null;
@@ -70,7 +71,7 @@ export class Authenticator {
     return new Promise((resolve, reject) => {
       const [jwtHeader, jwtPayload, jwtSignature] = token.split(".");
       if (!jwtHeader || !jwtPayload || !jwtSignature) {
-        reject(new Error("Malformed token"));
+        reject(createError.unauthorized("Malformed JWT token"));
         return;
       }
       const jwtSignatureBase64 = Buffer.from(jwtSignature, "base64url").toString("base64");
@@ -82,14 +83,14 @@ export class Authenticator {
         .then((pem) => {
           const signatureIsValid = verifyFn.verify(pem, jwtSignatureBase64, "base64");
           if (!signatureIsValid) {
-            reject(new Error("Invalid signature"));
+            reject(createError.unauthorized("Invalid JWT token signature"));
             return;
           }
           try {
             const user = JSON.parse(Buffer.from(jwtPayload, "base64url").toString("utf-8"));
             resolve(user as DecodedUser);
           } catch (err) {
-            reject(err);
+            reject(createError.unauthorized("Invalid token"));
           }
         })
         .catch(reject);
@@ -100,12 +101,12 @@ export class Authenticator {
     return new Promise((resolve, reject) => {
       const authHeader = req.headers.authorization;
       if (!authHeader) {
-        reject();
+        reject(createError.unauthorized("Missing authorization header"));
         return;
       }
       const tokenRegExpMatch = authHeader.match(authHeaderRegex);
       if (!tokenRegExpMatch || !tokenRegExpMatch[0]) {
-        reject();
+        reject(createError.unauthorized("Missing authorization header"));
         return;
       }
       const token = tokenRegExpMatch[0];
