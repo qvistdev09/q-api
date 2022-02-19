@@ -1,11 +1,13 @@
 import { Api } from "./base";
-import { Middleware } from "./features/middleware";
-import { MiddlewareFunction } from "./features/middleware/types";
-import { Route } from "./features/routing";
+import { ApiConfig } from "./base/types";
+import { Middleware } from "./middleware";
+import { MiddlewareFunction } from "./middleware/types";
+import { Route } from "./routing";
+import { RouteConfig } from "./routing/types";
 
 const Q = {
-  createApi: (basePath: string) => new Api(basePath),
-  createRoute: (middlewares: Middleware[]) => new Route(middlewares),
+  createApi: (config: ApiConfig) => new Api(config),
+  createRoute: (routeConfig: RouteConfig) => new Route(routeConfig),
   createMiddleware: (middlewareFunction: MiddlewareFunction) => new Middleware(middlewareFunction),
 };
 

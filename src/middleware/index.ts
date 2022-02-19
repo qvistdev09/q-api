@@ -1,5 +1,5 @@
-import { Request, Response } from "../../context";
-import { MiddlewareFunction } from "../types";
+import { Request, Response } from "../context";
+import { MiddlewareFunction } from "./types";
 
 export class Middleware {
   middlewareFunction: MiddlewareFunction;

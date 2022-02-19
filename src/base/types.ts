@@ -1,5 +1,4 @@
-import { Request, Response } from "../../features/context";
-import { Route } from "../../features/routing/classes";
+import { Route } from "../routing";
 
 export interface ParamsMatch {
   [paramIdentifier: string]: string;
@@ -9,8 +8,6 @@ export interface UrlMatcherResult {
   match: boolean;
   params?: ParamsMatch;
 }
-
-export type ErrorHandler = (req: Request, res: Response, err: any) => void;
 
 export interface ImportedRoutes {
   GET?: Route;
@@ -29,4 +26,14 @@ export interface Endpoint {
     PATCH?: Route;
     DELETE?: Route;
   };
+}
+
+interface AuthConfig {
+  auth0HostName: string;
+  publicKeyCacheLimitInMinutes?: number;
+}
+
+export interface ApiConfig {
+  basePath: string;
+  authConfig: AuthConfig;
 }

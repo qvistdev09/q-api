@@ -1,4 +1,4 @@
-import { QBaseValidator } from "../classes";
+import { QBaseValidator } from ".";
 
 export interface ValidationError {
   property: string;

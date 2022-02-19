@@ -1,5 +1,7 @@
 import FS from "fs";
-import { UrlMatcherResult } from "../types";
+import http from "http";
+import { httpMethods } from "../consts";
+import { Endpoint, ImportedRoutes, UrlMatcherResult } from "./types";
 
 const indexRecursively = (basePath: string, pathsArray: Array<string>) => {
   const directoryContents = FS.readdirSync(basePath);
@@ -44,4 +46,32 @@ export const createUrlMatcherFunction = (
       params: matchResult.groups || {},
     };
   };
+};
+
+export const getEndpointsFromFiles = (basePath: string): Endpoint[] => {
+  const endpoints: Endpoint[] = [];
+  getNestedContents(basePath).forEach((file) => {
+    const routeConfig = require(file) as ImportedRoutes;
+    const endpoint: Endpoint = {
+      matcher: createUrlMatcherFunction(basePath, file),
+      methods: {},
+    };
+    httpMethods.forEach((method) => {
+      if (routeConfig[method]) {
+        endpoint.methods[method] = routeConfig[method];
+      }
+    });
+    endpoints.push(endpoint);
+  });
+  return endpoints;
+};
+
+export const contentTypeJSON = (httpReq: http.IncomingMessage) => {
+  if (
+    httpReq.headers["content-type"] &&
+    httpReq.headers["content-type"].toLowerCase() === "application/json"
+  ) {
+    return true;
+  }
+  return false;
 };

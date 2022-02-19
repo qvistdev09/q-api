@@ -1,5 +1,5 @@
-import { Middleware } from "../../middleware";
-import { SegmentedMiddlewareFunctions } from "../types";
+import { Middleware } from "../middleware";
+import { SegmentedMiddlewareFunctions } from "./types";
 
 export const assertRequiredDependencies = (middlewares: Middleware[]) => {
   middlewares.forEach((middleware) => {

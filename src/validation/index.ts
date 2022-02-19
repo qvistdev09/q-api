@@ -1,5 +1,5 @@
-import { PairedValidator, PropertyValidator, ValidationError } from "../types";
-import { getNestedValue, getValidatorsRecursively } from "../utils";
+import { PairedValidator, PropertyValidator, ValidationError } from "./types";
+import { getNestedValue, getValidatorsRecursively } from "./utils";
 
 export class QBaseValidator {
   tests: Array<PropertyValidator>;

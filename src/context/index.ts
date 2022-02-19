@@ -1,4 +1,5 @@
 import http from "http";
+import { DecodedUser } from "../auth/types";
 
 export class Response {
   httpRes: http.ServerResponse;
@@ -13,13 +14,17 @@ export class Response {
 }
 
 export class Request {
+  httpReq: http.IncomingMessage;
   body: object;
   query: object;
   params: object;
+  user: DecodedUser | null;
 
-  constructor(body: object, query?: object | null, params?: object | null) {
-    this.body = body;
-    this.query = query || {};
-    this.params = params || {};
+  constructor(httpReq: http.IncomingMessage) {
+    this.httpReq = httpReq;
+    this.body = {};
+    this.query = {};
+    this.params = {};
+    this.user = null;
   }
 }

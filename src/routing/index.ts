@@ -1,14 +1,15 @@
-import { ErrorHandler } from "../../../base/types";
-import { Request, Response } from "../../context";
-import { Middleware } from "../../middleware";
-import { SegmentedMiddlewareFunctions } from "../types";
-import { assertRequiredDependencies, segmentDependencies } from "../utils";
+import { ErrorHandler } from "../errors/types";
+import { Request, Response } from "../context";
+import { RouteConfig, SegmentedMiddlewareFunctions } from "./types";
+import { assertRequiredDependencies, segmentDependencies } from "./utils";
 
 export class Route {
   segments: SegmentedMiddlewareFunctions;
+  useAuth: boolean;
 
-  constructor(middlewares: Middleware[]) {
+  constructor({ middlewares, useAuth }: RouteConfig) {
     assertRequiredDependencies(middlewares);
+    this.useAuth = useAuth;
     this.segments = segmentDependencies(middlewares);
   }
 

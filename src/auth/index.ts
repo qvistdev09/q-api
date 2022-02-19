@@ -1,4 +1,4 @@
-import { DecodedUser, PemConfig } from "../types";
+import { DecodedUser, PemConfig } from "./types";
 import crypto from "crypto";
 import https from "https";
 import http from "http";
