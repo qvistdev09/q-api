@@ -16,10 +16,11 @@ const createResponse = Q.createMiddleware((req, res) => {
   return new Promise((resolve, reject) => {
     setTimeout(() => {
       console.log("4. Creating response");
-      res.responseData = { message: "This is a response" };
+      const tokenLifetime = (req.user.exp - req.user.iat);
+      res.responseData = { ...req.user, tokenLifetime };
       res.statusCode = 200;
       resolve();
-    }, 1000);
+    }, 100);
   });
 }).dependsOn([setupLocals, getUserData, createEvent]);
 
