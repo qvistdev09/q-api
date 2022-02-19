@@ -1,6 +1,7 @@
 import { DecodedUser, PemConfig } from "../types";
 import crypto from "crypto";
 import https from "https";
+import http from "http";
 
 export class PemStore {
   private pem: string | null;
@@ -8,10 +9,10 @@ export class PemStore {
   private cacheLimit: number;
   private fetchedAt: Date | null;
 
-  constructor({ auth0HostName, cacheLimit }: PemConfig) {
+  constructor({ auth0HostName, cacheLimitInMinutes }: PemConfig) {
     this.pem = null;
     this.auth0HostName = auth0HostName;
-    this.cacheLimit = cacheLimit;
+    this.cacheLimit = cacheLimitInMinutes * 1000 * 60;
     this.fetchedAt = null;
   }
 
@@ -57,13 +58,15 @@ export class PemStore {
   }
 }
 
+const authHeaderRegex = /(?<=^Bearer\s).+$/;
+
 export class Authenticator {
   private pemStore: PemStore;
   constructor(pemStore: PemStore) {
     this.pemStore = pemStore;
   }
 
-  authenticateUser(token: string): Promise<DecodedUser> {
+  validateToken(token: string): Promise<DecodedUser> {
     return new Promise((resolve, reject) => {
       const [jwtHeader, jwtPayload, jwtSignature] = token.split(".");
       if (!jwtHeader || !jwtPayload || !jwtSignature) {
@@ -88,6 +91,27 @@ export class Authenticator {
           } catch (err) {
             reject(err);
           }
+        })
+        .catch(reject);
+    });
+  }
+
+  authenticateRequest(req: http.IncomingMessage): Promise<DecodedUser> {
+    return new Promise((resolve, reject) => {
+      const authHeader = req.headers.authorization;
+      if (!authHeader) {
+        reject();
+        return;
+      }
+      const tokenRegExpMatch = authHeader.match(authHeaderRegex);
+      if (!tokenRegExpMatch || !tokenRegExpMatch[0]) {
+        reject();
+        return;
+      }
+      const token = tokenRegExpMatch[0];
+      this.validateToken(token)
+        .then((user) => {
+          resolve(user);
         })
         .catch(reject);
     });

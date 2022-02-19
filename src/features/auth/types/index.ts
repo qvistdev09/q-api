@@ -10,5 +10,5 @@ export interface DecodedUser {
 
 export interface PemConfig {
   auth0HostName: string;
-  cacheLimit: number;
+  cacheLimitInMinutes: number;
 }
