@@ -87,7 +87,14 @@ export class Authenticator {
             return;
           }
           try {
-            const user = JSON.parse(Buffer.from(jwtPayload, "base64url").toString("utf-8"));
+            const user = JSON.parse(
+              Buffer.from(jwtPayload, "base64url").toString("utf-8")
+            ) as DecodedUser;
+            const tokenExpiresAt = new Date(user.exp * 1000);
+            if (tokenExpiresAt.getTime() < new Date().getTime()) {
+              reject(createError.unauthorized("Token has expired"));
+              return;
+            }
             resolve(user as DecodedUser);
           } catch (err) {
             reject(createError.unauthorized("Invalid token"));
