@@ -61,23 +61,34 @@ export class Api {
       return this.noRoute(httpRes);
     }
 
-    let bodyString = "";
-    httpReq.on("data", (chunk) => {
-      bodyString += chunk.toString();
-    });
-    httpReq.on("end", () => {
-      try {
-        const reqBody = JSON.parse(bodyString);
-        const reqQuery = url.parse(requestUrl, true).query;
-        const reqParams = matchingHandler.matcher(requestUrl).params || {};
-        const req = new Request(reqBody, reqQuery, reqParams);
-        const res = new Response(httpRes);
-        routeMiddleware(req, res);
-      } catch (err) {
-        console.log(err);
-        this.badRequest(httpRes, "Invalid request: malformed JSON");
-      }
-    });
+    if (
+      httpReq.headers["content-type"] &&
+      httpReq.headers["content-type"].toLowerCase() === "application/json"
+    ) {
+      let bodyString = "";
+      httpReq.on("data", (chunk) => {
+        bodyString += chunk.toString();
+      });
+      httpReq.on("end", () => {
+        try {
+          const reqBody = JSON.parse(bodyString);
+          const reqQuery = url.parse(requestUrl, true).query;
+          const reqParams = matchingHandler.matcher(requestUrl).params || {};
+          const req = new Request(reqBody, reqQuery, reqParams);
+          const res = new Response(httpRes);
+          routeMiddleware(req, res);
+        } catch (err) {
+          console.log(err);
+          this.badRequest(httpRes, "Invalid request: malformed JSON");
+        }
+      });
+    } else {
+      const reqQuery = url.parse(requestUrl, true).query;
+      const reqParams = matchingHandler.matcher(requestUrl).params || {};
+      const req = new Request({}, reqQuery, reqParams);
+      const res = new Response(httpRes);
+      routeMiddleware(req, res);
+    }
   }
 
   listen(port: number) {
