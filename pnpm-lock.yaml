@@ -4,11 +4,9 @@ specifiers:
   '@types/node': ^17.0.17
   typescript: ^4.5.5
 
-dependencies:
-  typescript: 4.5.5
-
 devDependencies:
   '@types/node': 17.0.17
+  typescript: 4.5.5
 
 packages:
 
@@ -18,6 +16,5 @@ packages:
 
   /typescript/4.5.5:
     resolution: {integrity: sha512-TCTIul70LyWe6IJWT8QSYeA54WQe8EjQFU4wY52Fasj5UKx88LNYKCgBEHcOMOrFF1rKGbD8v/xcNWVUq9SymA==, tarball: '-/pull/typescript/4.5.5'}
-    engines: {node: '>=4.2.0'}
     hasBin: true
-    dev: false
+    dev: true
