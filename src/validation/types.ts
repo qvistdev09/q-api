@@ -13,7 +13,11 @@ export interface PairedValidator {
   path: Array<string>;
 }
 
+export interface ObjectSchema {
+  [key: string]: QBaseValidator | ObjectSchema;
+}
+
 export interface QSchemaConfig {
-  schema: any;
+  schema: ObjectSchema;
   requireAllProperties: boolean;
 }

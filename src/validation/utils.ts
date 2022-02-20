@@ -1,5 +1,5 @@
 import { QBaseValidator } from ".";
-import { PairedValidator } from "./types";
+import { ObjectSchema, PairedValidator } from "./types";
 
 const isObject = (value: any) => {
   return typeof value === "object" && !Array.isArray(value) && value !== null;
@@ -23,7 +23,7 @@ export const getNestedValue = (object: any, pathArray: Array<string>): any | nul
 };
 
 export const getValidatorsRecursively = (
-  schema: any,
+  schema: ObjectSchema,
   paths: string[] = [],
   validators: PairedValidator[] = []
 ) => {
@@ -37,8 +37,11 @@ export const getValidatorsRecursively = (
         validator: nextValue,
       });
     } else {
-      paths.push(key);
-      getValidatorsRecursively(schema[key], paths, validators);
+      const nextLevel = schema[key];
+      if (nextLevel && !(nextLevel instanceof QBaseValidator)) {
+        paths.push(key);
+        getValidatorsRecursively(nextLevel, paths, validators);
+      }
     }
   });
   return validators;
