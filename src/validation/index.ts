@@ -1,5 +1,5 @@
-import { PairedValidator, PropertyValidator, ValidationError } from "./types";
-import { getNestedValue, getValidatorsRecursively } from "./utils";
+import { PairedValidator, PropertyValidator, QSchemaConfig, ValidationError } from "./types";
+import { getNestedValue, getValidatorsRecursively, indexObjectProperties } from "./utils";
 
 export class QBaseValidator {
   tests: Array<PropertyValidator>;
@@ -154,19 +154,47 @@ export class QNumber extends QBaseValidator {
 }
 
 export class QSchema {
-  validators: PairedValidator[];
-  constructor(schema: any) {
-    this.validators = getValidatorsRecursively(schema);
+  allowedProperties: string[];
+  requireAllProperties: boolean;
+  validatorMap: Record<string, PairedValidator>;
+
+  constructor({ schema, requireAllProperties }: QSchemaConfig) {
+    const validatorMap: Record<string, PairedValidator> = {};
+    const pairedValidators = getValidatorsRecursively(schema);
+    pairedValidators.forEach((validator) => {
+      validatorMap[validator.identifier] = validator;
+    });
+    this.validatorMap = validatorMap;
+    this.allowedProperties = pairedValidators.map((validator) => validator.identifier);
+    this.requireAllProperties = requireAllProperties;
   }
 
   validateObject(object: any) {
-    return this.validators
-      .map((pairedValidator) =>
-        pairedValidator.validator.testValue(
-          pairedValidator.path.join("."),
-          getNestedValue(object, pairedValidator.path)
-        )
-      )
-      .flat();
+    const errors: ValidationError[] = [];
+    const objectProperties = indexObjectProperties(object);
+    objectProperties.forEach((property) => {
+      if (!this.allowedProperties.includes(property)) {
+        errors.push({
+          property,
+          error: "Non-allowed property",
+        });
+      }
+    });
+    const propertiesToValidate = this.requireAllProperties
+      ? this.allowedProperties
+      : objectProperties.filter((property) => this.allowedProperties.includes(property));
+
+    propertiesToValidate.forEach((property) => {
+      const validator = this.validatorMap[property];
+      if (validator) {
+        const errorsOnProperty = validator.validator.testValue(
+          property,
+          getNestedValue(object, validator.path)
+        );
+        errors.push(...errorsOnProperty);
+      }
+    });
+
+    return errors;
   }
 }

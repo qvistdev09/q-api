@@ -33,6 +33,7 @@ export const getValidatorsRecursively = (
     if (nextValue instanceof QBaseValidator) {
       validators.push({
         path: [...paths, key],
+        identifier: [...paths, key].join("."),
         validator: nextValue,
       });
     } else {
