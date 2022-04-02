@@ -122,3 +122,109 @@ class NumberVal extends BaseVal {
     return this;
   }
 }
+
+interface Schema {
+  [key: string]: BaseVal | Schema;
+}
+
+interface ValidatorPairedWithPath {
+  validator: BaseVal;
+  path: string;
+}
+
+export const getValidatorsRecursively = (
+  schema: Schema,
+  paths: string[] = [],
+  validators: ValidatorPairedWithPath[] = []
+) => {
+  const keys = Object.keys(schema);
+  keys.forEach((key) => {
+    const nextValue = schema[key];
+    if (nextValue instanceof BaseVal) {
+      validators.push({
+        path: [...paths, key].join("."),
+        validator: nextValue,
+      });
+    } else {
+      const nextLevel = schema[key];
+      if (nextLevel && !(nextLevel instanceof BaseVal)) {
+        paths.push(key);
+        getValidatorsRecursively(nextLevel, paths, validators);
+      }
+    }
+  });
+  return validators;
+};
+
+type ValidatorsMap = Record<string, ValidatorPairedWithPath>;
+
+export const indexObjectProperties = (
+  object: any,
+  paths: string[] = [],
+  properties: string[] = []
+) => {
+  if (!isObject(object)) {
+    return properties;
+  }
+  Object.keys(object).forEach((key) => {
+    const nextValue = object[key];
+    if (!isObject(nextValue)) {
+      properties.push([...paths, key].join("."));
+    } else {
+      paths.push(key);
+      indexObjectProperties(object[key], paths, properties);
+    }
+  });
+  return properties;
+};
+
+class SchemaVal {
+  allowedProperties: string[];
+  validatorsMap: ValidatorsMap;
+
+  constructor(schema: Schema) {
+    const validatorsMap: ValidatorsMap = {};
+    const pairedValidators = getValidatorsRecursively(schema);
+    pairedValidators.forEach((pairedValidator) => {
+      validatorsMap[pairedValidator.path] = pairedValidator;
+    });
+    this.validatorsMap = validatorsMap;
+    this.allowedProperties = pairedValidators.map((pairedValidator) => pairedValidator.path);
+  }
+
+  validateObject(object: any, requireAllKeys: boolean): { object: any; errors: ValidationError[] } {
+    const errors: ValidationError[] = [];
+    const returnObject = {};
+    const objectProperties = indexObjectProperties(object);
+    objectProperties.forEach((property) => {
+      if (!this.allowedProperties.includes(property)) {
+        errors.push({
+          path: property,
+          error: "Non-allowed property",
+        });
+      }
+    });
+
+    const propertiesToValidate = requireAllKeys
+      ? this.allowedProperties
+      : objectProperties.filter((property) => this.allowedProperties.includes(property));
+
+    propertiesToValidate.forEach((property) => {
+      const validator = this.validatorsMap[property];
+      if (validator) {
+        validator.validator.evaluate(object, returnObject, validator.path, errors);
+      }
+    });
+
+    return {
+      object: returnObject,
+      errors,
+    };
+  }
+}
+
+export const valVersion2 = {
+  StringVal,
+  NumberVal,
+  SchemaVal,
+};
