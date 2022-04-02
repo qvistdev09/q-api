@@ -1,8 +1,7 @@
 {
   "name": "qvistdev-api",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "version": "0.1.0",
+  "main": "dist/index.js",
   "scripts": {
     "build": "rm -rf dist && tsc",
     "ts-watch": "tsc --watch"
@@ -11,9 +10,8 @@
     "type": "git",
     "url": "git+https://github.com/qvistdev09/qvistdev-api.git"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "Oscar Lindqvist",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/qvistdev09/qvistdev-api/issues"
   },
