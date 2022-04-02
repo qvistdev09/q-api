@@ -81,6 +81,7 @@ class StringVal extends BaseVal {
         });
       }
     });
+    return this;
   }
 }
 
