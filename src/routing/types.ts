@@ -9,4 +9,5 @@ export interface RouteConfig {
   useAuth: boolean;
   reqBodySchema?: QSchema;
   querySchema?: QSchema;
+  paramsSchema?: QSchema;
 }

@@ -10,13 +10,15 @@ export class Route {
   useAuth: boolean;
   reqBodySchema: QSchema | null;
   querySchema: QSchema | null;
+  paramsSchema: QSchema | null;
 
-  constructor({ middlewares, useAuth, reqBodySchema, querySchema }: RouteConfig) {
+  constructor({ middlewares, useAuth, reqBodySchema, querySchema, paramsSchema }: RouteConfig) {
     assertRequiredDependencies(middlewares);
     this.useAuth = useAuth;
     this.segments = segmentDependencies(middlewares);
     this.reqBodySchema = reqBodySchema || null;
     this.querySchema = querySchema || null;
+    this.paramsSchema = paramsSchema || null;
   }
 
   runNextMiddleware(index: number, req: Request, res: Response, errorHandler: ErrorHandler) {
