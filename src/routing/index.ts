@@ -54,6 +54,20 @@ export class Route {
         return;
       }
     }
+    if (this.querySchema) {
+      const validationErrors = this.querySchema.validateObject(req.query);
+      if (validationErrors.length > 0) {
+        errorHandler(req, res, createError.validationError("Invalid query", validationErrors));
+        return;
+      }
+    }
+    if (this.paramsSchema) {
+      const validationErrors = this.paramsSchema.validateObject(req.query);
+      if (validationErrors.length > 0) {
+        errorHandler(req, res, createError.validationError("Invalid params", validationErrors));
+      }
+      return;
+    }
     let index = 0;
     this.runNextMiddleware(index, req, res, errorHandler);
   }
