@@ -9,12 +9,14 @@ export class Route {
   segments: SegmentedMiddlewareFunctions;
   useAuth: boolean;
   reqBodySchema: QSchema | null;
+  querySchema: QSchema | null;
 
-  constructor({ middlewares, useAuth, reqBodySchema }: RouteConfig) {
+  constructor({ middlewares, useAuth, reqBodySchema, querySchema }: RouteConfig) {
     assertRequiredDependencies(middlewares);
     this.useAuth = useAuth;
     this.segments = segmentDependencies(middlewares);
     this.reqBodySchema = reqBodySchema || null;
+    this.querySchema = querySchema || null;
   }
 
   runNextMiddleware(index: number, req: Request, res: Response, errorHandler: ErrorHandler) {

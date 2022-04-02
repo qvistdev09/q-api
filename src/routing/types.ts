@@ -8,4 +8,5 @@ export interface RouteConfig {
   middlewares: Middleware[];
   useAuth: boolean;
   reqBodySchema?: QSchema;
+  querySchema?: QSchema;
 }
