@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.contentTypeJSON = exports.getEndpointsFromFiles = exports.createUrlMatcherFunction = exports.getNestedContents = void 0;
 const fs_1 = __importDefault(require("fs"));
 const consts_1 = require("../consts");
+const javascriptFile = /\.js$/;
 const indexRecursively = (basePath, pathsArray) => {
     const directoryContents = fs_1.default.readdirSync(basePath);
     directoryContents.forEach((content) => {
@@ -13,7 +14,7 @@ const indexRecursively = (basePath, pathsArray) => {
         if (fs_1.default.statSync(combinedPath).isDirectory()) {
             indexRecursively(combinedPath, pathsArray);
         }
-        else {
+        else if (javascriptFile.test(combinedPath)) {
             pathsArray.push(combinedPath);
         }
     });
