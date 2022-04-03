@@ -81,12 +81,48 @@ class StringVal extends BaseVal {
     });
   }
 
+  maxLength(limit: number) {
+    this.tests.push((path, value, errors) => {
+      if (typeof value === "string" && value.length > limit) {
+        errors.push({
+          path,
+          error: `String cannot be longer than ${limit} characters`,
+        });
+      }
+    });
+    return this;
+  }
+
+  minLength(minCharacters: number) {
+    this.tests.push((path, value, errors) => {
+      if (typeof value === "string" && value.length < minCharacters) {
+        errors.push({
+          path,
+          error: `String must be at least ${minCharacters} characters`,
+        });
+      }
+    });
+    return this;
+  }
+
   enum(accepted: string[]) {
     this.tests.push((path, value, errors) => {
       if (!accepted.includes(value)) {
         errors.push({
           path,
           error: `String must be one of [${accepted.join(" | ")}]`,
+        });
+      }
+    });
+    return this;
+  }
+
+  regex(regex: RegExp, onError: string) {
+    this.tests.push((path, value, errors) => {
+      if (!regex.test(value)) {
+        errors.push({
+          path,
+          error: onError,
         });
       }
     });
@@ -139,6 +175,32 @@ class NumberVal extends BaseVal {
         } else {
           setTransformedValue(Number.parseInt(value, 10));
         }
+      }
+    });
+    return this;
+  }
+
+  lesserThan(threshold: number) {
+    this.tests.push((path, value, errors, source) => {
+      const valueToCheck = source === "body" ? value : this.transformedValue;
+      if (typeof valueToCheck === "number" && valueToCheck > threshold) {
+        errors.push({
+          path,
+          error: `Value cannot be greater than ${threshold}`,
+        });
+      }
+    });
+    return this;
+  }
+
+  greaterThan(minimum: number) {
+    this.tests.push((path, value, errors, source) => {
+      const valueToCheck = source === "body" ? value : this.transformedValue;
+      if (typeof valueToCheck === "number" && valueToCheck < minimum) {
+        errors.push({
+          path,
+          error: `Value must be greater than ${minimum}`,
+        });
       }
     });
     return this;
