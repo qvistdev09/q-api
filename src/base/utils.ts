@@ -3,13 +3,15 @@ import http from "http";
 import { httpMethods } from "../consts";
 import { Endpoint, ImportedRoutes, UrlMatcherResult } from "./types";
 
+const javascriptFile = /\.js$/;
+
 const indexRecursively = (basePath: string, pathsArray: Array<string>) => {
   const directoryContents = FS.readdirSync(basePath);
   directoryContents.forEach((content) => {
     const combinedPath = `${basePath}/${content}`;
     if (FS.statSync(combinedPath).isDirectory()) {
       indexRecursively(combinedPath, pathsArray);
-    } else {
+    } else if (javascriptFile.test(combinedPath)) {
       pathsArray.push(combinedPath);
     }
   });
