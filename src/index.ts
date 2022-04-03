@@ -5,18 +5,19 @@ import { Middleware } from "./middleware";
 import { MiddlewareFunction } from "./middleware/types";
 import { Route } from "./routing";
 import { RouteConfig } from "./routing/types";
-import { QNumber, QSchema, QString } from "./validation";
-import { QSchemaConfig } from "./validation/types";
+import { NumberVal, StringVal, SchemaVal } from "./validation";
+import { Schema } from "./validation/types";
 
 const Q = {
   createApi: (config: ApiConfig) => new Api(config),
   createRoute: (routeConfig: RouteConfig) => new Route(routeConfig),
   createMiddleware: (middlewareFunction: MiddlewareFunction) => new Middleware(middlewareFunction),
   loadEnv,
-  number: () => new QNumber(),
-  string: () => new QString(),
-  createSchema: ({ schema, requireAllProperties }: QSchemaConfig) =>
-    new QSchema({ schema, requireAllProperties }),
+  val: {
+    createSchema: (schema: Schema) => new SchemaVal(schema),
+    number: () => new NumberVal(),
+    string: () => new StringVal(),
+  },
 };
 
 export default Q;

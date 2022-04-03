@@ -1,200 +1,291 @@
-import { PairedValidator, PropertyValidator, QSchemaConfig, ValidationError } from "./types";
-import { getNestedValue, getValidatorsRecursively, indexObjectProperties } from "./utils";
+import {
+  ValidationError,
+  DataSource,
+  Validator,
+  Schema,
+  ValidatorPairedWithPath,
+  ValidatorsMap,
+} from "./types";
 
-export class QBaseValidator {
-  tests: Array<PropertyValidator>;
+const isObject = (value: any) => {
+  return typeof value === "object" && !Array.isArray(value) && value !== null;
+};
+
+const getValueViaDotNotation = (path: string, data: any): any => {
+  return path.split(".").reduce((object: any, accessor: string) => {
+    if (object === undefined || object === null) {
+      return null;
+    }
+    return object[accessor];
+  }, data);
+};
+
+const setValueViaDotNotation = (path: string, data: any, value: any) => {
+  let currentLevel = data;
+  path.split(".").forEach((accessor: string, index, array) => {
+    if (index === array.length - 1) {
+      currentLevel[accessor] = value;
+    } else {
+      if (isObject(currentLevel[accessor])) {
+        currentLevel = currentLevel[accessor];
+      } else {
+        currentLevel[accessor] = {};
+        currentLevel = currentLevel[accessor];
+      }
+    }
+  });
+};
+
+export class BaseVal {
+  tests: Validator[];
+  transformedValue: any;
+
   constructor() {
     this.tests = [];
+    this.transformedValue = null;
   }
 
-  testValue(identifier: string, value: any) {
-    return this.tests
-      .map((validator) => validator(identifier, value))
-      .filter((result): result is ValidationError => result !== null);
+  evaluate(
+    objectToValidate: any,
+    returnObject: any,
+    path: string,
+    errors: ValidationError[],
+    source: DataSource
+  ) {
+    const value = getValueViaDotNotation(path, objectToValidate);
+    this.tests.forEach((validator) => {
+      validator(path, value, errors, source, (transformed) => {
+        this.transformedValue = transformed;
+      });
+    });
+    setValueViaDotNotation(path, returnObject, this.transformedValue || value);
   }
 }
 
-export class QString extends QBaseValidator {
+export class StringVal extends BaseVal {
   constructor() {
     super();
-    this.tests.push((identifier: string, value: any) => {
-      if (typeof value === "string") {
-        return null;
+    this.tests.push((path, value, errors) => {
+      if (typeof value !== "string") {
+        errors.push({
+          path,
+          error: "Value is not of type string",
+        });
       }
-      return {
-        property: identifier,
-        error: "Type error: value is not a string.",
-      };
     });
   }
 
-  maxLength(length: number) {
-    this.tests.push((identifier: string, value: any) => {
-      if (typeof value !== "string") {
-        return null;
+  maxLength(limit: number) {
+    this.tests.push((path, value, errors) => {
+      if (typeof value === "string" && value.length > limit) {
+        errors.push({
+          path,
+          error: `String cannot be longer than ${limit} characters`,
+        });
       }
-      if (value.length <= length) {
-        return null;
-      }
-      return {
-        property: identifier,
-        error: `Length error: string cannot be longer than ${length} characters`,
-      };
     });
     return this;
   }
 
-  minLength(length: number) {
-    this.tests.push((identifier, value) => {
-      if (typeof value !== "string") {
-        return null;
+  minLength(minCharacters: number) {
+    this.tests.push((path, value, errors) => {
+      if (typeof value === "string" && value.length < minCharacters) {
+        errors.push({
+          path,
+          error: `String must be at least ${minCharacters} characters`,
+        });
       }
-      if (value.length >= length) {
-        return null;
-      }
-      return {
-        property: identifier,
-        error: `Length error: string must be at least ${length} characters`,
-      };
     });
     return this;
   }
 
-  enum(acceptedValues: Array<string>) {
-    this.tests.push((identifier, value) => {
-      if (typeof value !== "string") {
-        return null;
+  enum(accepted: string[]) {
+    this.tests.push((path, value, errors) => {
+      if (!accepted.includes(value)) {
+        errors.push({
+          path,
+          error: `String must be one of [${accepted.join(" | ")}]`,
+        });
       }
-      if (acceptedValues.includes(value)) {
-        return null;
-      }
-      return {
-        property: identifier,
-        error: `Enum error: string must be one of [${acceptedValues.join(" | ")}]`,
-      };
     });
     return this;
   }
 
-  regexTest(regex: RegExp, onError: string) {
-    this.tests.push((identifier, value) => {
-      if (typeof value !== "string") {
-        return null;
+  regex(regex: RegExp, onError: string) {
+    this.tests.push((path, value, errors) => {
+      if (!regex.test(value)) {
+        errors.push({
+          path,
+          error: onError,
+        });
       }
-      if (regex.test(value)) {
-        return null;
-      }
-      return {
-        property: identifier,
-        error: onError,
-      };
     });
     return this;
   }
 }
 
-export class QNumber extends QBaseValidator {
+const integerRegex = /^[1-9][0-9]*$|^0$/;
+const numberRegex = /(^[1-9][0-9]*$|^0$)|(^(0|[1-9][0-9]*)\.\d+$)/;
+
+export class NumberVal extends BaseVal {
   constructor() {
     super();
-    this.tests.push((identifier, value) => {
-      if (typeof value === "number") {
-        return null;
+    this.tests.push((path, value, errors, source, setTransformedValue) => {
+      if (source === "body") {
+        if (typeof value !== "number") {
+          errors.push({
+            path,
+            error: "Value is not of type number",
+          });
+        }
+      } else {
+        if (typeof value !== "string" || !numberRegex.test(value)) {
+          errors.push({
+            path,
+            error: "String must be parseable as number",
+          });
+        } else {
+          setTransformedValue(Number.parseFloat(value));
+        }
       }
-      return {
-        property: identifier,
-        error: "Type error: value is not a number",
-      };
     });
   }
 
-  isInteger() {
-    this.tests.push((identifier, value) => {
-      if (Number.isInteger(value)) {
-        return null;
+  integer() {
+    this.tests.push((path, value, errors, source, setTransformedValue) => {
+      if (source === "body") {
+        if (!Number.isInteger(value)) {
+          errors.push({
+            path,
+            error: "Value is not integer",
+          });
+        }
+      } else {
+        if (typeof value !== "string" || !integerRegex.test(value)) {
+          errors.push({
+            path,
+            error: "Value must be a string that can be parsed to an integer",
+          });
+        } else {
+          setTransformedValue(Number.parseInt(value, 10));
+        }
       }
-      return {
-        property: identifier,
-        error: "Value must be integer",
-      };
     });
     return this;
   }
 
   lesserThan(threshold: number) {
-    this.tests.push((identifier, value) => {
-      if (typeof value !== "number") {
-        return null;
+    this.tests.push((path, value, errors, source) => {
+      const valueToCheck = source === "body" ? value : this.transformedValue;
+      if (typeof valueToCheck === "number" && valueToCheck > threshold) {
+        errors.push({
+          path,
+          error: `Value cannot be greater than ${threshold}`,
+        });
       }
-      if (value < threshold) {
-        return null;
-      }
-      return {
-        property: identifier,
-        error: `Number must be lesser than ${threshold}`,
-      };
     });
     return this;
   }
 
-  greaterThan(threshold: number) {
-    this.tests.push((identifier, value) => {
-      if (typeof value !== "number") {
-        return null;
+  greaterThan(minimum: number) {
+    this.tests.push((path, value, errors, source) => {
+      const valueToCheck = source === "body" ? value : this.transformedValue;
+      if (typeof valueToCheck === "number" && valueToCheck < minimum) {
+        errors.push({
+          path,
+          error: `Value must be greater than ${minimum}`,
+        });
       }
-      if (value > threshold) {
-        return null;
-      }
-      return {
-        property: identifier,
-        error: `Number must be greater than ${threshold}`,
-      };
     });
     return this;
   }
 }
 
-export class QSchema {
-  allowedProperties: string[];
-  requireAllProperties: boolean;
-  validatorMap: Record<string, PairedValidator>;
+const getValidatorsRecursively = (
+  schema: Schema,
+  paths: string[] = [],
+  validators: ValidatorPairedWithPath[] = []
+) => {
+  const keys = Object.keys(schema);
+  keys.forEach((key) => {
+    const nextValue = schema[key];
+    if (nextValue instanceof BaseVal) {
+      validators.push({
+        path: [...paths, key].join("."),
+        validator: nextValue,
+      });
+    } else {
+      const nextLevel = schema[key];
+      if (nextLevel && !(nextLevel instanceof BaseVal)) {
+        paths.push(key);
+        getValidatorsRecursively(nextLevel, paths, validators);
+      }
+    }
+  });
+  return validators;
+};
 
-  constructor({ schema, requireAllProperties }: QSchemaConfig) {
-    const validatorMap: Record<string, PairedValidator> = {};
+const indexObjectProperties = (object: any, paths: string[] = [], properties: string[] = []) => {
+  if (!isObject(object)) {
+    return properties;
+  }
+  Object.keys(object).forEach((key) => {
+    const nextValue = object[key];
+    if (!isObject(nextValue)) {
+      properties.push([...paths, key].join("."));
+    } else {
+      paths.push(key);
+      indexObjectProperties(object[key], paths, properties);
+    }
+  });
+  return properties;
+};
+
+export class SchemaVal {
+  allowedProperties: string[];
+  validatorsMap: ValidatorsMap;
+
+  constructor(schema: Schema) {
+    const validatorsMap: ValidatorsMap = {};
     const pairedValidators = getValidatorsRecursively(schema);
-    pairedValidators.forEach((validator) => {
-      validatorMap[validator.identifier] = validator;
+    pairedValidators.forEach((pairedValidator) => {
+      validatorsMap[pairedValidator.path] = pairedValidator;
     });
-    this.validatorMap = validatorMap;
-    this.allowedProperties = pairedValidators.map((validator) => validator.identifier);
-    this.requireAllProperties = requireAllProperties;
+    this.validatorsMap = validatorsMap;
+    this.allowedProperties = pairedValidators.map((pairedValidator) => pairedValidator.path);
   }
 
-  validateObject(object: any) {
+  validateObject(
+    object: any,
+    requireAllKeys: boolean,
+    source: DataSource
+  ): { object: any; errors: ValidationError[] } {
     const errors: ValidationError[] = [];
+    const returnObject = {};
     const objectProperties = indexObjectProperties(object);
     objectProperties.forEach((property) => {
       if (!this.allowedProperties.includes(property)) {
         errors.push({
-          property,
+          path: property,
           error: "Non-allowed property",
         });
       }
     });
-    const propertiesToValidate = this.requireAllProperties
+
+    const propertiesToValidate = requireAllKeys
       ? this.allowedProperties
       : objectProperties.filter((property) => this.allowedProperties.includes(property));
 
     propertiesToValidate.forEach((property) => {
-      const validator = this.validatorMap[property];
+      const validator = this.validatorsMap[property];
       if (validator) {
-        const errorsOnProperty = validator.validator.testValue(
-          property,
-          getNestedValue(object, validator.path)
-        );
-        errors.push(...errorsOnProperty);
+        validator.validator.evaluate(object, returnObject, validator.path, errors, source);
       }
     });
 
-    return errors;
+    return {
+      object: returnObject,
+      errors,
+    };
   }
 }

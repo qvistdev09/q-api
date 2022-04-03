@@ -2,23 +2,44 @@ import { ErrorHandler } from "../errors/types";
 import { Request, Response } from "../context";
 import { RouteConfig, SegmentedMiddlewareFunctions } from "./types";
 import { assertRequiredDependencies, segmentDependencies } from "./utils";
-import { QSchema } from "../validation";
 import { createError } from "../errors";
+import { SchemaVal } from "../validation";
 
 export class Route {
   segments: SegmentedMiddlewareFunctions;
   useAuth: boolean;
-  reqBodySchema: QSchema | null;
-  querySchema: QSchema | null;
-  paramsSchema: QSchema | null;
+  reqBodySchema: SchemaVal | null;
+  reqBodyRequireAllProperties: boolean;
+  querySchema: SchemaVal | null;
+  queryRequireAllProperties: boolean;
+  paramsSchema: SchemaVal | null;
 
-  constructor({ middlewares, useAuth, reqBodySchema, querySchema, paramsSchema }: RouteConfig) {
+  constructor({ middlewares, useAuth }: RouteConfig) {
     assertRequiredDependencies(middlewares);
     this.useAuth = useAuth;
     this.segments = segmentDependencies(middlewares);
-    this.reqBodySchema = reqBodySchema || null;
-    this.querySchema = querySchema || null;
-    this.paramsSchema = paramsSchema || null;
+    this.reqBodySchema = null;
+    this.querySchema = null;
+    this.paramsSchema = null;
+    this.reqBodyRequireAllProperties = true;
+    this.queryRequireAllProperties = true;
+  }
+
+  addRequestBodyValidation(schema: SchemaVal, requireAllProperties: boolean) {
+    this.reqBodySchema = schema;
+    this.reqBodyRequireAllProperties = requireAllProperties;
+    return this;
+  }
+
+  addQueryValidationSchema(schema: SchemaVal, requireAllProperties: boolean) {
+    this.querySchema = schema;
+    this.queryRequireAllProperties = requireAllProperties;
+    return this;
+  }
+
+  addParamsValidationSchema(schema: SchemaVal) {
+    this.paramsSchema = schema;
+    return this;
   }
 
   runNextMiddleware(index: number, req: Request, res: Response, errorHandler: ErrorHandler) {
@@ -44,29 +65,39 @@ export class Route {
 
   handleRequest(req: Request, res: Response, errorHandler: ErrorHandler) {
     if (this.reqBodySchema) {
-      const validationErrors = this.reqBodySchema.validateObject(req.body);
-      if (validationErrors.length > 0) {
-        errorHandler(
-          req,
-          res,
-          createError.validationError("Invalid request body", validationErrors)
-        );
+      const { errors, object } = this.reqBodySchema.validateObject(
+        req.body,
+        this.reqBodyRequireAllProperties,
+        "body"
+      );
+      if (errors.length > 0) {
+        errorHandler(req, res, createError.validationError("Invalid request body", errors));
         return;
+      } else {
+        req.body = object;
       }
     }
     if (this.querySchema) {
-      const validationErrors = this.querySchema.validateObject(req.query);
-      if (validationErrors.length > 0) {
-        errorHandler(req, res, createError.validationError("Invalid query", validationErrors));
+      const { errors, object } = this.querySchema.validateObject(
+        req.query,
+        this.queryRequireAllProperties,
+        "query"
+      );
+      if (errors.length > 0) {
+        errorHandler(req, res, createError.validationError("Invalid query", errors));
         return;
+      } else {
+        req.query = object;
       }
     }
     if (this.paramsSchema) {
-      const validationErrors = this.paramsSchema.validateObject(req.query);
-      if (validationErrors.length > 0) {
-        errorHandler(req, res, createError.validationError("Invalid params", validationErrors));
+      const { errors, object } = this.paramsSchema.validateObject(req.params, true, "path");
+      if (errors.length > 0) {
+        errorHandler(req, res, createError.validationError("Invalid params", errors));
+        return;
+      } else {
+        req.params = object;
       }
-      return;
     }
     let index = 0;
     this.runNextMiddleware(index, req, res, errorHandler);

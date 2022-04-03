@@ -1,23 +1,27 @@
-import { QBaseValidator } from ".";
+import { BaseVal } from "./index";
 
 export interface ValidationError {
-  property: string;
+  path: string;
   error: string;
 }
 
-export type PropertyValidator = (identifier: string, value: any) => ValidationError | null;
+export type DataSource = "body" | "header" | "path" | "query";
 
-export interface PairedValidator {
-  validator: QBaseValidator;
-  identifier: string;
-  path: Array<string>;
+export type Validator = (
+  path: string,
+  value: any,
+  errors: ValidationError[],
+  source: DataSource,
+  setTransformedValue: (transformed: any) => void
+) => void;
+
+export interface Schema {
+  [key: string]: BaseVal | Schema;
 }
 
-export interface ObjectSchema {
-  [key: string]: QBaseValidator | ObjectSchema;
+export interface ValidatorPairedWithPath {
+  validator: BaseVal;
+  path: string;
 }
 
-export interface QSchemaConfig {
-  schema: ObjectSchema;
-  requireAllProperties: boolean;
-}
+export type ValidatorsMap = Record<string, ValidatorPairedWithPath>;
