@@ -25,7 +25,7 @@ export const createUrlMatcherFunction = (
   filePath: string
 ): ((requestUrl: string) => UrlMatcherResult) => {
   const cleanedPath = filePath.replace(basePath, "").replace(/\.js$/, "");
-  const urlParameters = cleanedPath.match(/{[a-zA-Z0-9]+}/g) || [];
+  const urlParameters = cleanedPath.match(/{.+}/g) || [];
 
   let urlRegexString = cleanedPath;
 
