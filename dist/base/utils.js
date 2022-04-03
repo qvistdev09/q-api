@@ -24,7 +24,7 @@ const getNestedContents = (basePath) => indexRecursively(basePath, []);
 exports.getNestedContents = getNestedContents;
 const createUrlMatcherFunction = (basePath, filePath) => {
     const cleanedPath = filePath.replace(basePath, "").replace(/\.js$/, "");
-    const urlParameters = cleanedPath.match(/{[a-zA-Z0-9]+}/g) || [];
+    const urlParameters = cleanedPath.match(/{.+}/g) || [];
     let urlRegexString = cleanedPath;
     urlParameters.forEach((parameter) => {
         const cleanedParam = parameter.replace(/[{}]/g, "");
