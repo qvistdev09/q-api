@@ -1,6 +1,6 @@
 import { ValidationError } from "../validation/types";
 import { ErrorHandler } from "./types";
-declare class ApiError {
+export declare class ApiError {
     statusCode: number;
     message: string;
     data: any | null;
@@ -15,4 +15,3 @@ export declare const createError: {
     methodNotAllowed: (message: string) => ApiError;
     validationError: (message: string, errors: ValidationError[]) => ApiError;
 };
-export {};

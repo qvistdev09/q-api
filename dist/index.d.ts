@@ -11,6 +11,14 @@ declare const Q: {
     createRoute: (routeConfig: RouteConfig) => Route;
     createMiddleware: (middlewareFunction: MiddlewareFunction) => Middleware;
     loadEnv: (dotEnvPath: string) => void;
+    createError: {
+        badRequest: (message: string) => import("./errors").ApiError;
+        unauthorized: (message: string) => import("./errors").ApiError;
+        forbidden: (message: string) => import("./errors").ApiError;
+        notFound: (message: string) => import("./errors").ApiError;
+        methodNotAllowed: (message: string) => import("./errors").ApiError;
+        validationError: (message: string, errors: import("./validation/types").ValidationError[]) => import("./errors").ApiError;
+    };
     val: {
         createSchema: (schema: Schema) => SchemaVal;
         number: () => NumberVal;

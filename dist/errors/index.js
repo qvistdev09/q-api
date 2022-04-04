@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createError = exports.defaultErrorHandler = void 0;
+exports.createError = exports.defaultErrorHandler = exports.ApiError = void 0;
 class ApiError {
     constructor(statusCode, message, data) {
         this.statusCode = statusCode;
@@ -8,6 +8,7 @@ class ApiError {
         this.data = data || null;
     }
 }
+exports.ApiError = ApiError;
 const defaultErrorHandler = (req, res, err) => {
     console.log(err);
     if (err instanceof ApiError) {
