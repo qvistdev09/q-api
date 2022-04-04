@@ -1,5 +1,6 @@
 import { Api } from "./base";
 import { ApiConfig } from "./base/types";
+import { createError } from "./errors";
 import { loadEnv } from "./load-env";
 import { Middleware } from "./middleware";
 import { MiddlewareFunction } from "./middleware/types";
@@ -13,6 +14,7 @@ const Q = {
   createRoute: (routeConfig: RouteConfig) => new Route(routeConfig),
   createMiddleware: (middlewareFunction: MiddlewareFunction) => new Middleware(middlewareFunction),
   loadEnv,
+  createError,
   val: {
     createSchema: (schema: Schema) => new SchemaVal(schema),
     number: () => new NumberVal(),

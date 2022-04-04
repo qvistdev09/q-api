@@ -1,7 +1,7 @@
 import { ValidationError } from "../validation/types";
 import { ErrorHandler } from "./types";
 
-class ApiError {
+export class ApiError {
   statusCode: number;
   message: string;
   data: any | null;
