@@ -67,9 +67,10 @@ class Api {
         });
     }
     forwardRequest(httpReq, httpRes) {
+        var _a;
         const req = new context_1.Request(httpReq);
         const res = new context_1.Response(httpRes);
-        const requestUrl = httpReq.url;
+        const requestUrl = (_a = httpReq.url) === null || _a === void 0 ? void 0 : _a.replace(/\/*$/, "");
         const requestMethod = httpReq.method ? httpReq.method : null;
         if (!requestUrl || !requestMethod) {
             this.errorHandler(req, res, errors_1.createError.badRequest("Invalid request URL or method"));

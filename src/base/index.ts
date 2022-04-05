@@ -69,7 +69,7 @@ export class Api {
     const req = new Request(httpReq);
     const res = new Response(httpRes);
 
-    const requestUrl = httpReq.url;
+    const requestUrl = httpReq.url?.replace(/\/*$/, "");
     const requestMethod = httpReq.method ? (httpReq.method as HttpMethod) : null;
     if (!requestUrl || !requestMethod) {
       this.errorHandler(req, res, createError.badRequest("Invalid request URL or method"));
