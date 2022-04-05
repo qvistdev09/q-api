@@ -157,7 +157,7 @@ class NumberVal extends BaseVal {
     lesserThan(threshold) {
         this.tests.push((path, value, errors, source) => {
             const valueToCheck = source === "body" ? value : this.transformedValue;
-            if (typeof valueToCheck === "number" && valueToCheck > threshold) {
+            if (typeof valueToCheck === "number" && valueToCheck >= threshold) {
                 errors.push({
                     path,
                     error: `Value cannot be greater than ${threshold}`,
@@ -169,7 +169,7 @@ class NumberVal extends BaseVal {
     greaterThan(minimum) {
         this.tests.push((path, value, errors, source) => {
             const valueToCheck = source === "body" ? value : this.transformedValue;
-            if (typeof valueToCheck === "number" && valueToCheck < minimum) {
+            if (typeof valueToCheck === "number" && valueToCheck <= minimum) {
                 errors.push({
                     path,
                     error: `Value must be greater than ${minimum}`,
