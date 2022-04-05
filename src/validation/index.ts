@@ -205,20 +205,23 @@ export class BooleanVal extends BaseVal {
   constructor() {
     super();
     this.tests.push((path, value, errors, source, setTransformedValue) => {
+      if (source === "body" && typeof value === "boolean") {
+        return;
+      }
       if (source === "body" && typeof value !== "boolean") {
         errors.push({
           path,
           error: "Value is not boolean",
         });
-        return this;
+        return;
       }
       if (value === "true") {
         setTransformedValue(true);
-        return this;
+        return;
       }
       if (value === "false") {
         setTransformedValue(false);
-        return this;
+        return;
       }
       errors.push({
         path,
