@@ -4,7 +4,7 @@ import { Middleware } from "./middleware";
 import { MiddlewareFunction } from "./middleware/types";
 import { Route } from "./routing";
 import { RouteConfig } from "./routing/types";
-import { NumberVal, StringVal, SchemaVal } from "./validation";
+import { NumberVal, StringVal, SchemaVal, BooleanVal, ArrayVal } from "./validation";
 import { Schema } from "./validation/types";
 declare const Q: {
     createApi: (config: ApiConfig) => Api;
@@ -23,6 +23,8 @@ declare const Q: {
         createSchema: (schema: Schema) => SchemaVal;
         number: () => NumberVal;
         string: () => StringVal;
+        boolean: () => BooleanVal;
+        array: (validator: NumberVal | StringVal | BooleanVal) => ArrayVal;
     };
 };
 export default Q;

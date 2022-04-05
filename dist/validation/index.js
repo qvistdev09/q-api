@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.SchemaVal = exports.NumberVal = exports.StringVal = exports.BaseVal = void 0;
+exports.SchemaVal = exports.ArrayVal = exports.BooleanVal = exports.NumberVal = exports.StringVal = exports.BaseVal = void 0;
 const isObject = (value) => {
     return typeof value === "object" && !Array.isArray(value) && value !== null;
 };
@@ -180,6 +180,82 @@ class NumberVal extends BaseVal {
     }
 }
 exports.NumberVal = NumberVal;
+class BooleanVal extends BaseVal {
+    constructor() {
+        super();
+        this.tests.push((path, value, errors, source, setTransformedValue) => {
+            if (source === "body" && typeof value !== "boolean") {
+                errors.push({
+                    path,
+                    error: "Value is not boolean",
+                });
+                return this;
+            }
+            if (value === "true") {
+                setTransformedValue(true);
+                return this;
+            }
+            if (value === "false") {
+                setTransformedValue(false);
+                return this;
+            }
+            errors.push({
+                path,
+                error: "Value must be a string that is parseable as boolean, i.e. 'true' or 'false'",
+            });
+        });
+    }
+}
+exports.BooleanVal = BooleanVal;
+class ArrayVal extends BaseVal {
+    constructor(validator) {
+        super();
+        this.tests.push((path, value, errors) => {
+            if (!Array.isArray(value)) {
+                errors.push({
+                    path,
+                    error: "Value is not an array",
+                });
+                return;
+            }
+            value.forEach((element, index) => {
+                const validationSetup = { data: element };
+                const elementErrors = [];
+                validator.evaluate(validationSetup, {}, "data", elementErrors, "body");
+                elementErrors.forEach((elementError) => {
+                    errors.push({
+                        path: `${path}[${index}]`,
+                        error: elementError.error,
+                    });
+                });
+            });
+            return;
+        });
+    }
+    minLength(min) {
+        this.tests.push((path, value, errors) => {
+            if (Array.isArray(value) && value.length < min) {
+                errors.push({
+                    path,
+                    error: `Array must have a length that is ${min} minimum`,
+                });
+            }
+        });
+        return this;
+    }
+    maxLength(max) {
+        this.tests.push((path, value, errors) => {
+            if (Array.isArray(value) && value.length > max) {
+                errors.push({
+                    path,
+                    error: `Array must have a length that is ${max} maximum`,
+                });
+            }
+        });
+        return this;
+    }
+}
+exports.ArrayVal = ArrayVal;
 const getValidatorsRecursively = (schema, paths = [], validators = []) => {
     const keys = Object.keys(schema);
     keys.forEach((key) => {

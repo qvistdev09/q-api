@@ -6,7 +6,7 @@ import { Middleware } from "./middleware";
 import { MiddlewareFunction } from "./middleware/types";
 import { Route } from "./routing";
 import { RouteConfig } from "./routing/types";
-import { NumberVal, StringVal, SchemaVal } from "./validation";
+import { NumberVal, StringVal, SchemaVal, BooleanVal, ArrayVal } from "./validation";
 import { Schema } from "./validation/types";
 
 const Q = {
@@ -19,6 +19,8 @@ const Q = {
     createSchema: (schema: Schema) => new SchemaVal(schema),
     number: () => new NumberVal(),
     string: () => new StringVal(),
+    boolean: () => new BooleanVal(),
+    array: (validator: NumberVal | StringVal | BooleanVal) => new ArrayVal(validator),
   },
 };
 

@@ -201,6 +201,84 @@ export class NumberVal extends BaseVal {
   }
 }
 
+export class BooleanVal extends BaseVal {
+  constructor() {
+    super();
+    this.tests.push((path, value, errors, source, setTransformedValue) => {
+      if (source === "body" && typeof value !== "boolean") {
+        errors.push({
+          path,
+          error: "Value is not boolean",
+        });
+        return this;
+      }
+      if (value === "true") {
+        setTransformedValue(true);
+        return this;
+      }
+      if (value === "false") {
+        setTransformedValue(false);
+        return this;
+      }
+      errors.push({
+        path,
+        error: "Value must be a string that is parseable as boolean, i.e. 'true' or 'false'",
+      });
+    });
+  }
+}
+
+export class ArrayVal extends BaseVal {
+  constructor(validator: NumberVal | StringVal | BooleanVal) {
+    super();
+    this.tests.push((path, value, errors) => {
+      if (!Array.isArray(value)) {
+        errors.push({
+          path,
+          error: "Value is not an array",
+        });
+        return;
+      }
+      value.forEach((element, index) => {
+        const validationSetup = { data: element };
+        const elementErrors: ValidationError[] = [];
+        validator.evaluate(validationSetup, {}, "data", elementErrors, "body");
+        elementErrors.forEach((elementError) => {
+          errors.push({
+            path: `${path}[${index}]`,
+            error: elementError.error,
+          });
+        });
+      });
+      return;
+    });
+  }
+
+  minLength(min: number) {
+    this.tests.push((path, value, errors) => {
+      if (Array.isArray(value) && value.length < min) {
+        errors.push({
+          path,
+          error: `Array must have a length that is ${min} minimum`,
+        });
+      }
+    });
+    return this;
+  }
+
+  maxLength(max: number) {
+    this.tests.push((path, value, errors) => {
+      if (Array.isArray(value) && value.length > max) {
+        errors.push({
+          path,
+          error: `Array must have a length that is ${max} maximum`,
+        });
+      }
+    });
+    return this;
+  }
+}
+
 const getValidatorsRecursively = (
   schema: Schema,
   paths: string[] = [],

@@ -18,6 +18,14 @@ export declare class NumberVal extends BaseVal {
     lesserThan(threshold: number): this;
     greaterThan(minimum: number): this;
 }
+export declare class BooleanVal extends BaseVal {
+    constructor();
+}
+export declare class ArrayVal extends BaseVal {
+    constructor(validator: NumberVal | StringVal | BooleanVal);
+    minLength(min: number): this;
+    maxLength(max: number): this;
+}
 export declare class SchemaVal {
     allowedProperties: string[];
     validatorsMap: ValidatorsMap;

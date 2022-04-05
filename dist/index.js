@@ -16,6 +16,8 @@ const Q = {
         createSchema: (schema) => new validation_1.SchemaVal(schema),
         number: () => new validation_1.NumberVal(),
         string: () => new validation_1.StringVal(),
+        boolean: () => new validation_1.BooleanVal(),
+        array: (validator) => new validation_1.ArrayVal(validator),
     },
 };
 exports.default = Q;
