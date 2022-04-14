@@ -33,9 +33,18 @@ class BaseVal {
     constructor() {
         this.tests = [];
         this.transformedValue = null;
+        this.isNullable = false;
+    }
+    nullable() {
+        this.isNullable = true;
+        return this;
     }
     evaluate(objectToValidate, returnObject, path, errors, source) {
         const value = getValueViaDotNotation(path, objectToValidate);
+        if (this.isNullable && [null, undefined].includes(value)) {
+            setValueViaDotNotation(path, returnObject, value);
+            return;
+        }
         this.tests.forEach((validator) => {
             validator(path, value, errors, source, (transformed) => {
                 this.transformedValue = transformed;

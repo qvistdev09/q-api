@@ -39,10 +39,17 @@ const setValueViaDotNotation = (path: string, data: any, value: any) => {
 export class BaseVal {
   tests: Validator[];
   transformedValue: any;
+  isNullable: boolean;
 
   constructor() {
     this.tests = [];
     this.transformedValue = null;
+    this.isNullable = false;
+  }
+
+  nullable() {
+    this.isNullable = true;
+    return this;
   }
 
   evaluate(
@@ -53,6 +60,11 @@ export class BaseVal {
     source: DataSource
   ) {
     const value = getValueViaDotNotation(path, objectToValidate);
+    if (this.isNullable && [null, undefined].includes(value)) {
+      setValueViaDotNotation(path, returnObject, value);
+      return;
+    }
+
     this.tests.forEach((validator) => {
       validator(path, value, errors, source, (transformed) => {
         this.transformedValue = transformed;

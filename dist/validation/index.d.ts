@@ -2,7 +2,9 @@ import { ValidationError, DataSource, Validator, Schema, ValidatorsMap } from ".
 export declare class BaseVal {
     tests: Validator[];
     transformedValue: any;
+    isNullable: boolean;
     constructor();
+    nullable(): this;
     evaluate(objectToValidate: any, returnObject: any, path: string, errors: ValidationError[], source: DataSource): void;
 }
 export declare class StringVal extends BaseVal {
