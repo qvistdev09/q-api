@@ -36,10 +36,11 @@ const setValueViaDotNotation = (path: string, data: any, value: any) => {
   });
 };
 
-export class BaseVal {
+export class BaseVal<T> {
   tests: Validator[];
   transformedValue: any;
   isNullable: boolean;
+  _savedType!: T;
 
   constructor() {
     this.tests = [];
@@ -74,7 +75,7 @@ export class BaseVal {
   }
 }
 
-export class StringVal extends BaseVal {
+export class StringVal extends BaseVal<string> {
   constructor() {
     super();
     this.tests.push((path, value, errors) => {
@@ -139,7 +140,7 @@ export class StringVal extends BaseVal {
 const integerRegex = /^[1-9][0-9]*$|^0$/;
 const numberRegex = /(^[1-9][0-9]*$|^0$)|(^(0|[1-9][0-9]*)\.\d+$)/;
 
-export class NumberVal extends BaseVal {
+export class NumberVal extends BaseVal<number> {
   constructor() {
     super();
     this.tests.push((path, value, errors, source, setTransformedValue) => {
@@ -213,7 +214,7 @@ export class NumberVal extends BaseVal {
   }
 }
 
-export class BooleanVal extends BaseVal {
+export class BooleanVal extends BaseVal<boolean> {
   constructor() {
     super();
     this.tests.push((path, value, errors, source, setTransformedValue) => {
@@ -243,7 +244,7 @@ export class BooleanVal extends BaseVal {
   }
 }
 
-export class ArrayVal extends BaseVal {
+export class ArrayVal extends BaseVal<Array<any>> {
   constructor(validator: NumberVal | StringVal | BooleanVal) {
     super();
     this.tests.push((path, value, errors) => {
