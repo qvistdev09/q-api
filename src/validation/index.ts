@@ -49,8 +49,10 @@ export class BaseVal<T> {
   }
 
   nullable() {
-    this.isNullable = true;
-    return this;
+    const nullableVersion = new BaseVal<T | undefined | null>();
+    nullableVersion.tests = this.tests;
+    nullableVersion.isNullable = true;
+    return nullableVersion;
   }
 
   evaluate(
@@ -244,7 +246,7 @@ export class BooleanVal extends BaseVal<boolean> {
   }
 }
 
-export class ArrayVal extends BaseVal<Array<any>> {
+export class ArrayVal<T> extends BaseVal<Array<T>> {
   constructor(validator: NumberVal | StringVal | BooleanVal) {
     super();
     this.tests.push((path, value, errors) => {
@@ -383,3 +385,15 @@ export class SchemaVal {
     };
   }
 }
+
+const form = {
+  name: new StringVal().minLength(2),
+  age: new NumberVal().greaterThan(18),
+  interests: new ArrayVal(new NumberVal()),
+};
+
+type SchemaDerivedInterface<T> = {
+  [P in keyof T]: T[P] extends BaseVal<infer TS> ? TS : never;
+};
+
+type TestType = SchemaDerivedInterface<typeof form>;
