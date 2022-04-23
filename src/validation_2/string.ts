@@ -1,6 +1,6 @@
 import { Base } from "./base";
 
-export class String<t = string> extends Base<t> {
+export class StringValidation<t = string> extends Base<t> {
   constructor() {
     super();
     this.validatorFunctions.push((path, value, errors) => {
@@ -47,7 +47,7 @@ export class String<t = string> extends Base<t> {
       }
     });
 
-    const typeChangedInstance = new String<e>();
+    const typeChangedInstance = new StringValidation<e>();
     typeChangedInstance.validatorFunctions = this.validatorFunctions;
     return typeChangedInstance;
   }
