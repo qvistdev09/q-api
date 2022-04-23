@@ -37,7 +37,7 @@ export class String<t = string> extends Base<t> {
     return this;
   }
 
-  enum<p = string>(accepted: Readonly<p[]>) {
+  enum<e = string>(accepted: Readonly<e[]>) {
     this.validatorFunctions.push((path, value, errors) => {
       if (!accepted.includes(value)) {
         errors.push({
@@ -47,7 +47,7 @@ export class String<t = string> extends Base<t> {
       }
     });
 
-    const typeChangedInstance = new String<p>();
+    const typeChangedInstance = new String<e>();
     typeChangedInstance.validatorFunctions = this.validatorFunctions;
     return typeChangedInstance;
   }
