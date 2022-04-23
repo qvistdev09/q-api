@@ -24,6 +24,9 @@ export class BaseValidation<GoalType> {
       transformedValue: null,
       source: dataSource,
     };
+    if (this.isNullable && [undefined, null].includes(value)) {
+      return validationContainer;
+    }
     this.validatorFunctions.forEach((validatorFunction) => validatorFunction(validationContainer));
     return validationContainer;
   }
