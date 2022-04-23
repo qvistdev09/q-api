@@ -9,7 +9,7 @@ export class BooleanValidation extends BaseValidation<boolean> {
         return;
       }
       if (source === "body" && typeof originalValue !== "boolean") {
-        errors.push("Value is not boolean");
+        errors.push({ issue: "Value is not boolean" });
         return;
       }
       if (originalValue === "true") {
@@ -20,7 +20,9 @@ export class BooleanValidation extends BaseValidation<boolean> {
         validationContainer.transformedValue = false;
         return;
       }
-      errors.push("Value must be a string that is parseable as boolean, i.e. 'true' or 'false'");
+      errors.push({
+        issue: "Value must be a string that is parseable as boolean, i.e. 'true' or 'false'",
+      });
     });
   }
 }

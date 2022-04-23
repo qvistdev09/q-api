@@ -1,11 +1,13 @@
 import { createArrayValidator } from "./validation/array";
+import { BooleanValidation } from "./validation/boolean";
 import { NumberValidation } from "./validation/number";
 import { SchemaValidation } from "./validation/schema";
 import { StringValidation } from "./validation/string";
 
 const person = {
   name: new StringValidation<string>(),
-  age: createArrayValidator(new NumberValidation().greaterThan(30)),
+  age: createArrayValidator(new NumberValidation().greaterThan(30)).minLength(1),
+  isCool: new BooleanValidation(),
   interests: {
     main: new StringValidation<string>().enum(["potato", "kimchi"]),
   },
@@ -15,7 +17,8 @@ const schemaThing = new SchemaValidation(person);
 
 const testObject = {
   name: "Peter",
-  age: [25, 94],
+  age: ["50", 94],
+  isCool: true,
   interests: {
     main: "potato",
   },

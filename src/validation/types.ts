@@ -3,7 +3,10 @@ import { BaseValidation } from "./base";
 export type DataSource = "body" | "header" | "path" | "query";
 
 export interface ValidationContainer {
-  errors: string[];
+  errors: Array<{
+    issue: string;
+    index?: number;
+  }>;
   originalValue: any;
   transformedValue: any;
   source: DataSource;
@@ -19,7 +22,7 @@ export interface ObjectValidationResult {
   data: any;
   errors: Array<{
     path: string;
-    errors: string[];
+    issue: string;
   }>;
 }
 

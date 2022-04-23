@@ -25,7 +25,7 @@ export class SchemaValidation {
       if (!this.allowedProperties.includes(key)) {
         validationResult.errors.push({
           path: key,
-          errors: ["Non-allowed property"],
+          issue: "Non-allowed property",
         });
       }
     });
@@ -33,9 +33,11 @@ export class SchemaValidation {
       const value = getValueViaDotNotation(path, object);
       const propertyValidationResult = validator.validateValue(value, source);
       if (propertyValidationResult.errors.length > 0) {
-        validationResult.errors.push({
-          path,
-          errors: propertyValidationResult.errors,
+        propertyValidationResult.errors.forEach((errorObj) => {
+          validationResult.errors.push({
+            path: errorObj.index !== undefined ? `${path}[${errorObj.index}]` : path,
+            issue: errorObj.issue,
+          });
         });
       }
       const { transformedValue, originalValue } = propertyValidationResult;
