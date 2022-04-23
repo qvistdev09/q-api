@@ -2,13 +2,11 @@ import { DataSource, ValidationContainer, ValidatorFunction } from "./types";
 
 export class BaseValidation<GoalType> {
   _savedGoalType!: GoalType;
-  transformedValue: any;
   validatorFunctions: ValidatorFunction[];
   isNullable: boolean;
 
   constructor() {
     this.validatorFunctions = [];
-    this.transformedValue = null;
     this.isNullable = false;
   }
 
