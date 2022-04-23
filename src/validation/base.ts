@@ -1,4 +1,4 @@
-import { DataSource, ValidationResult, ValidatorFunction } from "./types";
+import { DataSource, ValidationContainer, ValidatorFunction } from "./types";
 
 export class BaseValidation<GoalType> {
   _savedGoalType!: GoalType;
@@ -19,20 +19,14 @@ export class BaseValidation<GoalType> {
     return nullableInstance;
   }
 
-  validateValue(value: any, dataSource: DataSource): ValidationResult {
-    const errorMessages: string[] = [];
-    this.validatorFunctions.forEach((validator) => {
-      const output = validator(value, dataSource);
-      if (output.result === "fail") {
-        errorMessages.push(output.errorMessage);
-      } else if (output.transformedValue !== undefined) {
-        this.transformedValue = output.transformedValue;
-      }
-    });
-    const valueToReturn = this.transformedValue !== null ? this.transformedValue : value;
-    return {
-      errorMessages,
-      value: valueToReturn,
+  validateValue(value: any, dataSource: DataSource): ValidationContainer {
+    const validationContainer: ValidationContainer = {
+      errors: [],
+      originalValue: value,
+      transformedValue: null,
+      source: dataSource,
     };
+    this.validatorFunctions.forEach((validatorFunction) => validatorFunction(validationContainer));
+    return validationContainer;
   }
 }
