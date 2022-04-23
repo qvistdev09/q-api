@@ -3,21 +3,21 @@ import { getValueViaDotNotation, setValueViaDotNotation } from "./utils";
 
 export class Base<T> {
   _savedType!: T;
-  validatorFunctions: ValidatorFunction<T>[];
-  transformedValue: T | null;
+  transformedValue: any;
+  validatorFunctions: ValidatorFunction[];
   isNullable: boolean;
 
   constructor() {
-    this.validatorFunctions = [];
     this.transformedValue = null;
+    this.validatorFunctions = [];
     this.isNullable = false;
   }
 
   nullable() {
-    const nullableVersion = new Base<T | null | undefined>();
-    nullableVersion.validatorFunctions = this.validatorFunctions;
-    nullableVersion.isNullable = true;
-    return nullableVersion;
+    const nullableInstance = new Base<T | null | undefined>();
+    nullableInstance.validatorFunctions = this.validatorFunctions;
+    nullableInstance.isNullable = true;
+    return nullableInstance;
   }
 
   evaluate(
@@ -32,11 +32,12 @@ export class Base<T> {
       setValueViaDotNotation(path, returnedData, value);
       return;
     }
-    this.validatorFunctions.forEach((validatorFunction) => {
-      validatorFunction(path, value, errors, source, (transformed) => {
-        this.transformedValue = transformed;
+    this.validatorFunctions.forEach((validationFunction) => {
+      validationFunction(path, value, errors, source, (transformedValue) => {
+        this.transformedValue = transformedValue;
       });
     });
-    setValueViaDotNotation(path, returnedData, this.transformedValue || value);
+    const returnValue = this.transformedValue !== null ? this.transformedValue : value;
+    setValueViaDotNotation(path, returnedData, returnValue);
   }
 }
