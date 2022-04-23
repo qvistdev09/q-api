@@ -6,7 +6,13 @@ import { StringValidation } from "./validation/string";
 
 const person = {
   name: new StringValidation<string>(),
-  age: createArrayValidator(new NumberValidation().greaterThan(30)).minLength(1),
+  nested: {
+    layer: {
+      test: {
+        age: createArrayValidator(new NumberValidation().greaterThan(30)).minLength(1),
+      },
+    },
+  },
   isCool: new BooleanValidation(),
   interests: {
     main: new StringValidation<string>().enum(["potato", "kimchi"]),
@@ -17,7 +23,13 @@ const schemaThing = new SchemaValidation(person);
 
 const testObject = {
   name: "Peter",
-  age: ["50", 94],
+  nested: {
+    layer: {
+      test: {
+        age: [50, 94],
+      },
+    },
+  },
   isCool: true,
   interests: {
     main: "potato",

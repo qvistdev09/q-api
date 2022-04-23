@@ -21,8 +21,8 @@ export const getValidatorsRecursively = (
     } else {
       const nextLevel = schema[key];
       if (nextLevel && !(nextLevel instanceof BaseValidation)) {
-        paths.push(key);
-        getValidatorsRecursively(nextLevel, paths, validators);
+        const newPaths = [...paths, key];
+        getValidatorsRecursively(nextLevel, newPaths, validators);
       }
     }
   });
@@ -42,8 +42,8 @@ export const indexObjectProperties = (
     if (!isObject(nextValue)) {
       properties.push([...paths, key].join("."));
     } else {
-      paths.push(key);
-      indexObjectProperties(object[key], paths, properties);
+      const newPaths = [...paths, key];
+      indexObjectProperties(object[key], newPaths, properties);
     }
   });
   return properties;
