@@ -14,3 +14,20 @@ export type ValidatorFunction = (validationContainer: ValidationContainer) => vo
 export type SchemaDerivedInterface<T> = {
   [P in keyof T]: T[P] extends BaseValidation<infer TS> ? TS : never;
 };
+
+export interface ObjectValidationResult {
+  data: any;
+  errors: Array<{
+    path: string;
+    errors: string[];
+  }>;
+}
+
+export interface Schema {
+  [key: string]: BaseValidation<any> | Schema;
+}
+
+export interface PairedValidator {
+  validator: BaseValidation<any>;
+  path: string;
+}
