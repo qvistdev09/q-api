@@ -1,13 +1,14 @@
 import { IncomingHttpHeaders, IncomingMessage, ServerResponse } from "http";
 import { DecodedUser } from "./auth/types";
 import { JSON } from "./types";
+import { SchemaDerivedInterface } from "./validation/types";
 
-export class Context {
+export class Context<BodySchema, PathSchema, QuerySchema> {
   httpRes: ServerResponse;
   httpReq: IncomingMessage;
-  body: any;
-  query: any;
-  params: any;
+  body: SchemaDerivedInterface<BodySchema>;
+  query: SchemaDerivedInterface<QuerySchema>;
+  params: SchemaDerivedInterface<PathSchema>;
   headers: IncomingHttpHeaders;
   user?: DecodedUser;
   responseData: JSON;
@@ -19,5 +20,8 @@ export class Context {
     this.responseData = {};
     this.statusCode = null;
     this.headers = httpReq.headers;
+    this.body = {} as SchemaDerivedInterface<BodySchema>;
+    this.params = {} as SchemaDerivedInterface<PathSchema>;
+    this.query = {} as SchemaDerivedInterface<QuerySchema>;
   }
 }
