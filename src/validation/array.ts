@@ -1,7 +1,7 @@
 import { BaseValidation } from "./base";
 
-export class ArrayValidation<T> extends BaseValidation<T> {
-  constructor(validator: BaseValidation<any>) {
+export class ArrayValidation<T> extends BaseValidation<Array<T>> {
+  constructor(validator: BaseValidation<T>) {
     super();
     this.validatorFunctions.push((validationContainer) => {
       const { originalValue, errors, source } = validationContainer;
@@ -43,9 +43,3 @@ export class ArrayValidation<T> extends BaseValidation<T> {
     return this;
   }
 }
-
-export const createArrayValidator = <T>(validator: BaseValidation<T>) => {
-  return new ArrayValidation<Array<typeof validator extends BaseValidation<infer TS> ? TS : never>>(
-    validator
-  );
-};

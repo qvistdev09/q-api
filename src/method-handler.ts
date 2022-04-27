@@ -1,5 +1,5 @@
 import { Context } from "./context";
-import { DataSource, Schema } from "./validation/types";
+import { Schema } from "./validation/types";
 
 export class MethodHandler<BodySchema, QuerySchema, PathSchema> {
   handlerMethod: ((context: Context<BodySchema, QuerySchema, PathSchema>) => void) | null;
