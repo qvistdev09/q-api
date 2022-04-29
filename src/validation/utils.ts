@@ -12,18 +12,15 @@ export const getValidatorsRecursively = (
 ) => {
   const keys = Object.keys(schema);
   keys.forEach((key) => {
-    const nextValue = schema[key];
-    if (nextValue instanceof BaseValidation) {
+    const next = schema[key];
+    if (next instanceof BaseValidation) {
       validators.push({
         path: [...paths, key].join("."),
-        validator: nextValue,
+        validator: next,
       });
-    } else {
-      const nextLevel = schema[key];
-      if (nextLevel && !(nextLevel instanceof BaseValidation)) {
-        const newPaths = [...paths, key];
-        getValidatorsRecursively(nextLevel, newPaths, validators);
-      }
+    } else if (next) {
+      const branchedPath = [...paths, key];
+      getValidatorsRecursively(next, branchedPath, validators);
     }
   });
   return validators;
