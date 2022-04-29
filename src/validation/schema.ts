@@ -39,7 +39,7 @@ export class SchemaValidation {
         });
       });
       const { transformedValue, originalValue } = propertyValidationResult;
-      const returnValue = transformedValue !== null ? transformedValue : originalValue;
+      const returnValue = transformedValue ?? originalValue;
       setValueViaDotNotation(path, validationResult.data, returnValue);
     });
     return validationResult;
