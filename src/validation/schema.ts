@@ -32,14 +32,12 @@ export class SchemaValidation {
     this.propertyValidators.forEach(({ validator, path }) => {
       const value = getValueViaDotNotation(path, object);
       const propertyValidationResult = validator.validateValue(value, source);
-      if (propertyValidationResult.errors.length > 0) {
-        propertyValidationResult.errors.forEach((errorObj) => {
-          validationResult.errors.push({
-            path: errorObj.index !== undefined ? `${path}[${errorObj.index}]` : path,
-            issue: errorObj.issue,
-          });
+      propertyValidationResult.errors.forEach((errorObj) => {
+        validationResult.errors.push({
+          path: errorObj.index !== undefined ? `${path}[${errorObj.index}]` : path,
+          issue: errorObj.issue,
         });
-      }
+      });
       const { transformedValue, originalValue } = propertyValidationResult;
       const returnValue = transformedValue !== null ? transformedValue : originalValue;
       setValueViaDotNotation(path, validationResult.data, returnValue);
