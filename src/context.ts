@@ -10,7 +10,6 @@ export class Context<BodySchema, PathSchema, QuerySchema> {
   query: SchemaDerivedInterface<QuerySchema>;
   params: SchemaDerivedInterface<PathSchema>;
   headers: IncomingHttpHeaders;
-  user?: DecodedUser;
   responseData: JSON;
   statusCode: number | null;
 
@@ -23,5 +22,17 @@ export class Context<BodySchema, PathSchema, QuerySchema> {
     this.body = {} as SchemaDerivedInterface<BodySchema>;
     this.params = {} as SchemaDerivedInterface<PathSchema>;
     this.query = {} as SchemaDerivedInterface<QuerySchema>;
+  }
+}
+
+export class AuthedContext<BodySchema, PathSchema, QuerySchema> extends Context<
+  BodySchema,
+  PathSchema,
+  QuerySchema
+> {
+  user: DecodedUser;
+  constructor(httpReq: IncomingMessage, httpRes: ServerResponse) {
+    super(httpReq, httpRes);
+    this.user = {} as DecodedUser;
   }
 }
