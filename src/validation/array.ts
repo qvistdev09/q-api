@@ -1,8 +1,12 @@
 import { BaseValidation } from "./base";
+import { Nullable } from "./types";
 
 export class ArrayValidation<T> extends BaseValidation<Array<T>> {
+  validator: BaseValidation<T>;
+
   constructor(validator: BaseValidation<T>) {
     super();
+    this.validator = validator;
     this.validatorFunctions.push((validationContainer) => {
       const { originalValue, errors, source } = validationContainer;
       if (!Array.isArray(originalValue)) {
@@ -21,6 +25,13 @@ export class ArrayValidation<T> extends BaseValidation<Array<T>> {
         ];
       });
     });
+  }
+
+  nullable() {
+    const nullableInstance = new ArrayValidation<Nullable<T>>(this.validator);
+    nullableInstance.validatorFunctions = this.validatorFunctions;
+    nullableInstance.isNullable = true;
+    return nullableInstance;
   }
 
   minLength(min: number) {

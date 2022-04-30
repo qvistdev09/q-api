@@ -1,6 +1,7 @@
 import { BaseValidation } from "./base";
+import { Nullable } from "./types";
 
-export class BooleanValidation extends BaseValidation<boolean> {
+export class BooleanValidation<T = boolean> extends BaseValidation<T> {
   constructor() {
     super();
     this.validatorFunctions.push((validationContainer) => {
@@ -24,5 +25,12 @@ export class BooleanValidation extends BaseValidation<boolean> {
         issue: "Value must be a string that is parseable as boolean, i.e. 'true' or 'false'",
       });
     });
+  }
+
+  nullable() {
+    const nullableInstance = new BooleanValidation<Nullable<boolean>>();
+    nullableInstance.validatorFunctions = this.validatorFunctions;
+    nullableInstance.isNullable = true;
+    return nullableInstance;
   }
 }

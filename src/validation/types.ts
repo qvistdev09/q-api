@@ -34,3 +34,5 @@ export interface PairedValidator {
   validator: BaseValidation<any>;
   path: string;
 }
+
+export type Nullable<T> = T | null | undefined;

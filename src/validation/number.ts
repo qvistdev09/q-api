@@ -1,7 +1,8 @@
 import { BaseValidation } from "./base";
 import { integerRegex, numberRegex } from "./regexes";
+import { Nullable } from "./types";
 
-export class NumberValidation extends BaseValidation<number> {
+export class NumberValidation<T = number> extends BaseValidation<T> {
   constructor() {
     super();
     this.validatorFunctions.push((validationContainer) => {
@@ -18,6 +19,13 @@ export class NumberValidation extends BaseValidation<number> {
         }
       }
     });
+  }
+
+  nullable() {
+    const nullableInstance = new NumberValidation<Nullable<number>>();
+    nullableInstance.validatorFunctions = this.validatorFunctions;
+    nullableInstance.isNullable = true;
+    return nullableInstance;
   }
 
   integer() {

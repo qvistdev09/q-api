@@ -1,6 +1,7 @@
 import { BaseValidation } from "./base";
+import { Nullable } from "./types";
 
-export class StringValidation<t = string> extends BaseValidation<t> {
+export class StringValidation<T = string> extends BaseValidation<T> {
   constructor() {
     super();
     this.validatorFunctions.push((validationContainer) => {
@@ -8,6 +9,13 @@ export class StringValidation<t = string> extends BaseValidation<t> {
         validationContainer.errors.push({ issue: "Value is not of type string" });
       }
     });
+  }
+
+  nullable() {
+    const nullableInstance = new StringValidation<Nullable<T>>();
+    nullableInstance.validatorFunctions = this.validatorFunctions;
+    nullableInstance.isNullable = true;
+    return nullableInstance;
   }
 
   maxLength(limit: number) {
