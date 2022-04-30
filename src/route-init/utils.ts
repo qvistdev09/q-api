@@ -1,4 +1,5 @@
 import FS from "fs";
+import { UrlMatcherResult } from "./types";
 
 const javascriptFile = /\.js$/;
 
@@ -13,4 +14,34 @@ export const getFilePaths = (baseDirectory: string, filePaths: string[] = []) =>
     }
   });
   return filePaths;
+};
+
+export const createUrlMatcherFunction = (
+  basePath: string,
+  filePath: string
+): ((requestUrl: string) => UrlMatcherResult) => {
+  const cleanedPath = filePath.replace(basePath, "").replace(/\.js$/, "");
+  const urlParameters = cleanedPath.match(/{.+}/g) ?? [];
+
+  let urlRegexString = cleanedPath;
+
+  urlParameters.forEach((parameter) => {
+    const cleanedParam = parameter.replace(/[{}]/g, "");
+    urlRegexString = urlRegexString.replace(parameter, `(?<${cleanedParam}>[A-Za-z0-9]+)`);
+  });
+
+  const matcherRegex = new RegExp(`^${urlRegexString}($|\\?.*)`);
+
+  return (requestUrl: string) => {
+    const matchResult = requestUrl.match(matcherRegex);
+    if (matchResult === null) {
+      return {
+        match: false,
+      };
+    }
+    return {
+      match: true,
+      params: matchResult.groups ?? {},
+    };
+  };
 };
