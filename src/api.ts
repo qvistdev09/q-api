@@ -145,4 +145,10 @@ export class Api {
       this.errorHandler(context, err);
     }
   }
+
+  listen(port: number) {
+    this.server.listen(port, () => {
+      console.log(`Qvistdev API is listening on port ${port}`);
+    });
+  }
 }
