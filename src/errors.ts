@@ -2,7 +2,7 @@ import { Context } from "./context";
 
 export interface ValidationError {
   path: string;
-  error: string;
+  issue: string;
 }
 
 export type ErrorHandler = (context: Context, err: any) => void;
