@@ -1,8 +1,11 @@
 import { BaseEndpoint } from "./base-endpoint";
 import http from "http";
-import { defaultErrorHandler, ErrorHandler } from "./errors";
+import { createError, defaultErrorHandler, ErrorHandler } from "./errors";
 import { Authenticator, PemStore } from "./auth";
 import { importEndpoints } from "./route-init";
+import { Context } from "./context";
+
+export type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
 export interface Service {
   name: string;
@@ -44,5 +47,16 @@ export class Api {
     return this;
   }
 
-  handleRequest(req: http.IncomingMessage, res: http.ServerResponse) {}
+  handleRequest(req: http.IncomingMessage, res: http.ServerResponse) {
+    const requestUrl = req.url?.replace(/\/*$/, "");
+    const requestMethod = req.method ? (req.method as HttpMethod) : null;
+    if (!requestUrl || !requestMethod) {
+      this.errorHandler(
+        new Context(req, res),
+        createError.badRequest("Invalid request URL or method")
+      );
+      return;
+    }
+    
+  }
 }
