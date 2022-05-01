@@ -1,4 +1,4 @@
-import { Context } from "./context";
+import { AuthedContext, Context } from "./context";
 
 type JSONValues = number | string | boolean | null;
 
@@ -13,4 +13,8 @@ export interface HttpMethodHandlerResponse {
 
 export type HttpMethodHandlerFunction<BodySchema, PathSchema, QuerySchema> = (
   context: Context<BodySchema, PathSchema, QuerySchema>
-) => HttpMethodHandlerResponse;
+) => HttpMethodHandlerResponse | Promise<HttpMethodHandlerResponse>;
+
+export type AuthedHttpMethodHandlerFunction<BodySchema, PathSchema, QuerySchema> = (
+  context: AuthedContext<BodySchema, PathSchema, QuerySchema>
+) => HttpMethodHandlerResponse | Promise<HttpMethodHandlerResponse>;

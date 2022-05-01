@@ -1,16 +1,16 @@
-import { HttpMethodHandlerFunction } from "./types";
+import { HttpMethodHandlerFunction, AuthedHttpMethodHandlerFunction } from "./types";
 import { Schema } from "./validation/types";
 
 export class HttpMethodHandler<BodySchema, PathSchema, QuerySchema> {
-  bodySchema: Schema;
-  paramsSchema: Schema;
-  querySchema: Schema;
+  bodySchema: Schema | null;
+  paramsSchema: Schema | null;
+  querySchema: Schema | null;
   handlerFunction: HttpMethodHandlerFunction<BodySchema, PathSchema, QuerySchema> | null;
 
-  constructor(bodySchema: any, paramsSchema: any, querySchema: any) {
-    this.bodySchema = bodySchema;
-    this.paramsSchema = paramsSchema;
-    this.querySchema = querySchema;
+  constructor(bodySchema?: any, paramsSchema?: any, querySchema?: any) {
+    this.bodySchema = bodySchema ?? null;
+    this.paramsSchema = paramsSchema ?? null;
+    this.querySchema = querySchema ?? null;
     this.handlerFunction = null;
   }
 
@@ -43,5 +43,36 @@ export class HttpMethodHandler<BodySchema, PathSchema, QuerySchema> {
       schema
     );
     return newInstance;
+  }
+
+  useAuth() {
+    const newInstance = new AuthedHttpMethodHandler<BodySchema, PathSchema, QuerySchema>(
+      this.bodySchema,
+      this.paramsSchema,
+      this.querySchema
+    );
+    return newInstance;
+  }
+}
+
+export class AuthedHttpMethodHandler<BodySchema, PathSchema, QuerySchema> extends HttpMethodHandler<
+  BodySchema,
+  PathSchema,
+  QuerySchema
+> {
+  authedHandlerFunction: AuthedHttpMethodHandlerFunction<
+    BodySchema,
+    PathSchema,
+    QuerySchema
+  > | null;
+  constructor(bodySchema?: any, paramsSchema?: any, querySchema?: any) {
+    super(bodySchema, paramsSchema, querySchema);
+    this.authedHandlerFunction = null;
+  }
+
+  setHandler(
+    handlerFunction: AuthedHttpMethodHandlerFunction<BodySchema, PathSchema, QuerySchema>
+  ) {
+    this.authedHandlerFunction = handlerFunction;
   }
 }
