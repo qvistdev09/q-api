@@ -55,8 +55,9 @@ export const createUrlMatcherFunction = (
 export const importEndpoints = (baseFolder: string): BaseEndpoint[] => {
   const endpoints: BaseEndpoint[] = [];
   getFilePaths(baseFolder).forEach((filePath) => {
-    const module = require(filePath);
-    const { endpoint } = module;
+    const { Endpoint } = require(filePath);
+    // fix services
+    const endpoint = new Endpoint();
     if (endpoint instanceof BaseEndpoint) {
       endpoint.urlMatcher = createUrlMatcherFunction(baseFolder, filePath);
       endpoints.push(endpoint);
