@@ -1,5 +1,6 @@
 import FS from "fs";
 import http from "http";
+import { Service } from "./api";
 import { BaseEndpoint } from "./base-endpoint";
 
 export interface UrlMatcherResult {
@@ -52,12 +53,16 @@ export const createUrlMatcherFunction = (
   };
 };
 
-export const importEndpoints = (baseFolder: string): BaseEndpoint[] => {
+export const importEndpoints = (baseFolder: string, services: Service[]): BaseEndpoint[] => {
   const endpoints: BaseEndpoint[] = [];
   getFilePaths(baseFolder).forEach((filePath) => {
     const { Endpoint } = require(filePath);
-    // fix services
-    const endpoint = new Endpoint();
+    const requestedServicesNames = Endpoint.services as string[];
+    // throw error on undefined services
+    const matchedServices = requestedServicesNames.map((name) =>
+      services.find((service) => service.name === name)
+    );
+    const endpoint = new Endpoint(...matchedServices);
     if (endpoint instanceof BaseEndpoint) {
       endpoint.urlMatcher = createUrlMatcherFunction(baseFolder, filePath);
       endpoints.push(endpoint);
