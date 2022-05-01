@@ -1,5 +1,11 @@
 import FS from "fs";
-import { UrlMatcherResult } from "./types";
+import http from "http";
+import { BaseEndpoint } from "./base-endpoint";
+
+export interface UrlMatcherResult {
+  match: boolean;
+  params?: Record<string, string>;
+}
 
 const javascriptFile = /\.js$/;
 
@@ -44,4 +50,27 @@ export const createUrlMatcherFunction = (
       params: matchResult.groups ?? {},
     };
   };
+};
+
+export const importEndpoints = (baseFolder: string): BaseEndpoint[] => {
+  const endpoints: BaseEndpoint[] = [];
+  getFilePaths(baseFolder).forEach((filePath) => {
+    const module = require(filePath);
+    const { endpoint } = module;
+    if (endpoint instanceof BaseEndpoint) {
+      endpoint.urlMatcher = createUrlMatcherFunction(baseFolder, filePath);
+      endpoints.push(endpoint);
+    }
+  });
+  return endpoints;
+};
+
+export const contentTypeJSON = (httpReq: http.IncomingMessage) => {
+  if (
+    httpReq.headers["content-type"] &&
+    httpReq.headers["content-type"].toLowerCase() === "application/json"
+  ) {
+    return true;
+  }
+  return false;
 };
