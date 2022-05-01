@@ -1,7 +1,7 @@
 import { HttpMethodHandlerFunction, AuthedHttpMethodHandlerFunction } from "./types";
 import { Schema } from "./validation/types";
 
-export class HttpMethodHandler<BodySchema = Schema, PathSchema = Schema, QuerySchema = Schema> {
+export class HttpMethodHandler<BodySchema = any, PathSchema = any, QuerySchema = any> {
   bodySchema: Schema | null;
   paramsSchema: Schema | null;
   querySchema: Schema | null;
@@ -56,9 +56,9 @@ export class HttpMethodHandler<BodySchema = Schema, PathSchema = Schema, QuerySc
 }
 
 export class AuthedHttpMethodHandler<
-  BodySchema = Schema,
-  PathSchema = Schema,
-  QuerySchema = Schema
+  BodySchema = any,
+  PathSchema = any,
+  QuerySchema = any
 > extends HttpMethodHandler<BodySchema, PathSchema, QuerySchema> {
   authedHandlerFunction: AuthedHttpMethodHandlerFunction<
     BodySchema,
