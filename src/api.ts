@@ -15,7 +15,7 @@ export interface Service {
   reference: any;
 }
 
-interface AuthConfig {
+export interface AuthConfig {
   auth0HostName: string;
   publicKeyCacheLimitInMinutes?: number;
 }
