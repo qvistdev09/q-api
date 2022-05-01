@@ -1,8 +1,8 @@
 import { IncomingHttpHeaders, IncomingMessage, ServerResponse } from "http";
-import { DecodedUser } from "./auth/types";
-import { SchemaDerivedInterface } from "./validation/types";
+import { DecodedUser } from "./auth";
+import { Schema, SchemaDerivedInterface } from "./validation/types";
 
-export class Context<BodySchema, PathSchema, QuerySchema> {
+export class Context<BodySchema = Schema, PathSchema = Schema, QuerySchema = Schema> {
   httpRes: ServerResponse;
   httpReq: IncomingMessage;
   body: SchemaDerivedInterface<BodySchema>;
