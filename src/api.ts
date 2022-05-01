@@ -4,6 +4,7 @@ import { createError, defaultErrorHandler, ErrorHandler } from "./errors";
 import { Authenticator, PemStore } from "./auth";
 import { importEndpoints } from "./route-init";
 import { Context } from "./context";
+import { HttpMethodHandler } from "./http-method-handler";
 
 export type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
@@ -16,6 +17,19 @@ interface AuthConfig {
   auth0HostName: string;
   publicKeyCacheLimitInMinutes?: number;
 }
+
+const getMatchingEndpoint = (url: string, endpoints: BaseEndpoint[]) => {
+  for (let endpoint of endpoints) {
+    const matchResult = endpoint.urlMatcher?.(url);
+    if (matchResult && matchResult.match) {
+      return {
+        endpoint,
+        params: matchResult.params ?? {},
+      };
+    }
+  }
+  return null;
+};
 
 export class Api {
   services: Service[];
@@ -51,12 +65,23 @@ export class Api {
     const requestUrl = req.url?.replace(/\/*$/, "");
     const requestMethod = req.method ? (req.method as HttpMethod) : null;
     if (!requestUrl || !requestMethod) {
-      this.errorHandler(
+      return this.errorHandler(
         new Context(req, res),
         createError.badRequest("Invalid request URL or method")
       );
-      return;
     }
-    
+    const matchingEndpoint = getMatchingEndpoint(requestUrl, this.endpoints);
+    if (matchingEndpoint === null) {
+      return this.errorHandler(new Context(req, res), createError.notFound("No matching route"));
+    }
+    const methodHandler = matchingEndpoint.endpoint[requestMethod];
+    if (!methodHandler) {
+      return this.errorHandler(
+        new Context(req, res),
+        createError.notFound("HTTP method not allowed")
+      );
+    }
+    if (methodHandler instanceof HttpMethodHandler) {
+    }
   }
 }

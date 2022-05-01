@@ -1,16 +1,16 @@
 import { HttpMethodHandlerFunction, AuthedHttpMethodHandlerFunction } from "./types";
-import { Schema } from "./validation/types";
+import { SchemaValidation } from "./validation/schema";
 
 export class HttpMethodHandler<BodySchema = any, PathSchema = any, QuerySchema = any> {
-  bodySchema: Schema | null;
-  paramsSchema: Schema | null;
-  querySchema: Schema | null;
+  bodySchema: SchemaValidation | null;
+  paramsSchema: SchemaValidation | null;
+  querySchema: SchemaValidation | null;
   handlerFunction: HttpMethodHandlerFunction<BodySchema, PathSchema, QuerySchema> | null;
 
   constructor(bodySchema?: any, paramsSchema?: any, querySchema?: any) {
-    this.bodySchema = bodySchema ?? null;
-    this.paramsSchema = paramsSchema ?? null;
-    this.querySchema = querySchema ?? null;
+    this.bodySchema = bodySchema ? new SchemaValidation(bodySchema) : null;
+    this.paramsSchema = paramsSchema ? new SchemaValidation(paramsSchema) : null;
+    this.querySchema = querySchema ? new SchemaValidation(querySchema) : null;
     this.handlerFunction = null;
   }
 
