@@ -20,6 +20,7 @@ export const getFilePaths = (baseDirectory: string, filePaths: string[] = []) =>
       filePaths.push(combinedPath);
     }
   });
+  console.log({ filePaths });
   return filePaths;
 };
 
@@ -58,10 +59,12 @@ export const importEndpoints = (baseFolder: string, services: Service[]): BaseEn
   getFilePaths(baseFolder).forEach((filePath) => {
     const { Endpoint } = require(filePath);
     const requestedServicesNames = Endpoint.services as string[];
+    console.log({ requestedServicesNames, services });
     // throw error on undefined services
     const matchedServices = requestedServicesNames.map((name) =>
-      services.find((service) => service.name === name)
+      services.find((service) => service.name === name)?.reference
     );
+    console.log({ matchedServices });
     const endpoint = new Endpoint(...matchedServices);
     if (endpoint instanceof BaseEndpoint) {
       endpoint.urlMatcher = createUrlMatcherFunction(baseFolder, filePath);

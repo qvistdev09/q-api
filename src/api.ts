@@ -103,6 +103,17 @@ export class Api {
         let reqBody = await this.parseReqBody(req);
         let reqQuery = url.parse(requestUrl, true).query ?? {};
         let reqParams = matchingEndpoint.params;
+        console.log(
+          JSON.stringify(
+            {
+              reqBody,
+              reqQuery,
+              reqParams,
+            },
+            null,
+            2
+          )
+        );
         if (methodHandler.bodySchema) {
           const reqBodyValidation = methodHandler.bodySchema.validateObject(reqBody, "body");
           if (reqBodyValidation.errors.length > 0) {
@@ -124,7 +135,7 @@ export class Api {
           reqQuery = reqQueryValidation.data;
         }
         if (methodHandler.paramsSchema) {
-          const reqParamsValidation = methodHandler.paramsSchema.validateObject(reqQuery, "path");
+          const reqParamsValidation = methodHandler.paramsSchema.validateObject(reqParams, "path");
           if (reqParamsValidation.errors.length > 0) {
             return this.errorHandler(
               context,
@@ -139,8 +150,9 @@ export class Api {
         const methodHandlerOutput = await methodHandler.handlerFunction(context);
         res.writeHead(methodHandlerOutput.statusCode, { "Content-Type": "application/json" });
         res.end(JSON.stringify(methodHandlerOutput.data));
+      } else {
+        return this.errorHandler(context, createError.notFound("Not implemented"));
       }
-      return this.errorHandler(context, createError.notFound("Not implemented"));
     } catch (err) {
       this.errorHandler(context, err);
     }

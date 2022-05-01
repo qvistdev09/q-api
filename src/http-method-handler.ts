@@ -16,30 +16,31 @@ export class HttpMethodHandler<BodySchema = any, PathSchema = any, QuerySchema =
 
   setHandler(handlerFunction: HttpMethodHandlerFunction<BodySchema, PathSchema, QuerySchema>) {
     this.handlerFunction = handlerFunction;
+    return this;
   }
 
   addBodyValidation<t>(schema: t) {
     const newInstance = new HttpMethodHandler<t, PathSchema, QuerySchema>(
       schema,
-      this.paramsSchema,
-      this.querySchema
+      this.paramsSchema?.schema,
+      this.querySchema?.schema
     );
     return newInstance;
   }
 
   addParamsValidation<t>(schema: t) {
     const newInstance = new HttpMethodHandler<BodySchema, t, QuerySchema>(
-      this.bodySchema,
+      this.bodySchema?.schema,
       schema,
-      this.querySchema
+      this.querySchema?.schema
     );
     return newInstance;
   }
 
   addQueryValidation<t>(schema: t) {
     const newInstance = new HttpMethodHandler<BodySchema, PathSchema, t>(
-      this.bodySchema,
-      this.paramsSchema,
+      this.bodySchema?.schema,
+      this.paramsSchema?.schema,
       schema
     );
     return newInstance;
@@ -47,9 +48,9 @@ export class HttpMethodHandler<BodySchema = any, PathSchema = any, QuerySchema =
 
   useAuth() {
     const newInstance = new AuthedHttpMethodHandler<BodySchema, PathSchema, QuerySchema>(
-      this.bodySchema,
-      this.paramsSchema,
-      this.querySchema
+      this.bodySchema?.schema,
+      this.paramsSchema?.schema,
+      this.querySchema?.schema
     );
     return newInstance;
   }
@@ -74,5 +75,6 @@ export class AuthedHttpMethodHandler<
     handlerFunction: AuthedHttpMethodHandlerFunction<BodySchema, PathSchema, QuerySchema>
   ) {
     this.authedHandlerFunction = handlerFunction;
+    return this;
   }
 }

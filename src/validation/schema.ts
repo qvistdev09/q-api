@@ -9,8 +9,10 @@ import {
 export class SchemaValidation {
   propertyValidators: PairedValidator[];
   allowedProperties: string[];
+  schema: Schema;
 
   constructor(schema: Schema) {
+    this.schema = schema;
     this.propertyValidators = getValidatorsRecursively(schema);
     this.allowedProperties = this.propertyValidators.map((validator) => validator.path);
   }
