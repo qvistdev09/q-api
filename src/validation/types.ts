@@ -15,7 +15,7 @@ export interface ValidationContainer {
 export type ValidatorFunction = (validationContainer: ValidationContainer) => void;
 
 export type SchemaDerivedInterface<T> = {
-  [P in keyof T]: T[P] extends BaseValidation<infer TS> ? TS : never;
+  [P in keyof T]: T[P] extends BaseValidation<infer TS> ? TS : SchemaDerivedInterface<T[P]>;
 };
 
 export interface ObjectValidationResult {
