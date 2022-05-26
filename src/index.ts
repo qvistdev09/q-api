@@ -6,15 +6,9 @@ import { BooleanValidation } from "./validation/boolean";
 import { NumberValidation } from "./validation/number";
 import { StringValidation } from "./validation/string";
 
-const Q = {
-  createApi: (authConfig: AuthConfig) => new Api(authConfig),
-  BaseEndpoint,
-  val: {
-    number: () => new NumberValidation<number>(),
-    string: () => new StringValidation<string>(),
-    boolean: () => new BooleanValidation<boolean>(),
-    array: <t>(element: BaseValidation<t>) => new ArrayValidation(element),
-  },
-};
-
-export default Q;
+export const createApi = (authConfig: AuthConfig) => new Api(authConfig);
+export const number = () => new NumberValidation<number>();
+export const string = () => new StringValidation<string>();
+export const boolean = () => new BooleanValidation<boolean>();
+export const array = <t>(element: BaseValidation<t>) => new ArrayValidation(element);
+export { BaseEndpoint };
