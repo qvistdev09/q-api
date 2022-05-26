@@ -91,7 +91,7 @@ Endpoint.services = ["BooksService"];
 
 The context object is passed as the first argument to the handler-functions. It wraps the request- and response-objects from the Node.js http-server. It also gives access to the request body, params, query and headers. If a validation schema is supplied when initializing the method handler, the validated part of the request will be strongly typed.
 
-Schema:
+**Schema:**
 
 ```javascript
 const bodySchema = {
@@ -102,13 +102,34 @@ const bodySchema = {
 };
 ```
 
-Resulting type on the request body:
+**Resulting type on the request body:**
 
 ```
 {
   data: {
     title: string;
     price: number;
+  }
+}
+```
+
+When typing string properties as enums, add ``as const`` for even stronger typing:
+
+```javascript
+const bodySchema = {
+  data: {
+    category: string().enum(["sci-fi", "fantasy", "non-fiction"] as const),
+  },
+};
+```
+
+**Resulting type on the request body:**
+
+
+```
+{
+  data: {
+    category: "sci-fi" | "fantasy" | "non-fiction";
   }
 }
 ```
