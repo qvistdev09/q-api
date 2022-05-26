@@ -5,7 +5,7 @@ export class BooleanValidation<T = boolean> extends BaseValidation<T> {
   constructor() {
     super();
     this.validatorFunctions.push((validationContainer) => {
-      const { source, errors, originalValue, transformedValue } = validationContainer;
+      const { source, errors, originalValue } = validationContainer;
       if (source === "body" && typeof originalValue === "boolean") {
         return;
       }
