@@ -33,10 +33,11 @@ Routing is file based and inferred from the contents of your base directory (bas
 ### Examples
 
 File:
-`./api-routes/resources/books.ts`
+```./api-routes/resources/books.ts```
 
 Endpoint:
-`http://localhost:8080/resources/books`
+
+```http://localhost:8080/resources/books```
 
 Dynamic params can be enclosed in curly braces.
 
