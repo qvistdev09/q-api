@@ -1,14 +1,8 @@
 import { AuthedContext, Context } from "./context";
 import { Schema } from "./validation/types";
 
-type JSONValues = number | string | boolean | null;
-
-export interface JSON {
-  [key: string]: JSONValues | JSON | Array<JSONValues | JSON>;
-}
-
 export interface HttpMethodHandlerResponse {
-  data: JSON;
+  data: any;
   statusCode: number;
 }
 
