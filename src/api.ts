@@ -189,7 +189,7 @@ export interface AuthConfig {
   publicKeyCacheLimitInMinutes?: number;
 }
 
-interface ApiConfig {
+export interface ApiConfig {
   authConfig: AuthConfig;
   basePath: string;
   services: Service[];
