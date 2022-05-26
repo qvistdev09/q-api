@@ -86,3 +86,29 @@ export class Endpoint extends BaseEndpoint {
 
 Endpoint.services = ["BooksService"];
 ```
+
+### Context
+
+The context object is passed as the first argument to the handler-functions. It wraps the request- and response-objects from the Node.js http-server. It also gives access to the request body, params, query and headers. If a validation schema is supplied when initializing the method handler, the validated part of the request will be strongly typed.
+
+Schema:
+
+```javascript
+const bodySchema = {
+  data: {
+    title: string().minLength(4).maxLength(50),
+    price: number().integer(),
+  },
+};
+```
+
+Resulting type on the request body:
+
+```
+{
+  data: {
+    title: string;
+    price: number;
+  }
+}
+```
