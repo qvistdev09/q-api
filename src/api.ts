@@ -43,13 +43,13 @@ export class Api {
       context.body = await parseRequestBody(req);
       context.query = getQueryObjectFromUrl(req.url);
       const endpointMatch = getMatchingEndpoint(req, this.endpoints);
-      context.params = endpointMatch.params as any;
+      context.params = endpointMatch.params;
       const methodHandler = getMethodHandlerOnEndpoint(req, endpointMatch.endpoint);
       if (methodHandler.useAuth) {
         context = new AuthedContext(context, await this.authenticator.authenticateRequest(req));
       }
       performValidations(methodHandler, context);
-      return await methodHandler.handlerFunction(context as any);
+      return methodHandler.handlerFunction(context as any);
     } catch (error) {
       throw new ContextBoundError(context, error);
     }
