@@ -1,4 +1,5 @@
 import { AuthedContext, Context } from "./context";
+import { Schema } from "./validation/types";
 
 type JSONValues = number | string | boolean | null;
 
@@ -11,10 +12,18 @@ export interface HttpMethodHandlerResponse {
   statusCode: number;
 }
 
-export type HttpMethodHandlerFunction<b, p, q> = (
-  context: Context<b, p, q>
+export type HttpMethodHandlerFunction<
+  BodySchema extends Schema,
+  ParamsSchema extends Schema,
+  QuerySchema extends Schema
+> = (
+  context: Context<BodySchema, ParamsSchema, QuerySchema>
 ) => HttpMethodHandlerResponse | Promise<HttpMethodHandlerResponse>;
 
-export type AuthedHttpMethodHandlerFunction<b, p, q> = (
-  context: AuthedContext<b, p, q>
+export type AuthedHttpMethodHandlerFunction<
+  BodySchema extends Schema,
+  ParamsSchema extends Schema,
+  QuerySchema extends Schema
+> = (
+  context: AuthedContext<BodySchema, ParamsSchema, QuerySchema>
 ) => HttpMethodHandlerResponse | Promise<HttpMethodHandlerResponse>;

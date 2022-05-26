@@ -1,6 +1,6 @@
 import { BaseValidation } from "./base";
 
-export type DataSource = "body" | "header" | "path" | "query";
+export type DataSource = "body" | "header" | "params" | "query";
 
 export interface ValidationContainer {
   errors: Array<{
