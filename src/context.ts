@@ -25,7 +25,10 @@ export class AuthedContext<
   ParamsSchema extends Schema = any,
   QuerySchema extends Schema = any
 > extends Context<BodySchema, ParamsSchema, QuerySchema> {
-  constructor(req: IncomingMessage, res: ServerResponse, public user: DecodedUser) {
-    super(req, res);
+  constructor(context: Context, public user: DecodedUser) {
+    super(context.req, context.res);
+    this.body = context.body;
+    this.params = context.params;
+    this.query = context.query;
   }
 }

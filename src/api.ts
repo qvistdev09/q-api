@@ -40,27 +40,14 @@ export class Api {
   async getHandlerResponse(req: http.IncomingMessage, res: http.ServerResponse) {
     let context: Context = new Context(req, res);
     try {
-      const { url, method } = req;
-      if (typeof url !== "string") {
-        throw new Error("Invalid request URL");
-      }
-      if (!validRequestMethod(method)) {
-        throw new Error("Invalid request method");
-      }
-      const endpointMatch = getMatchingEndpoint(url, this.endpoints);
-      if (endpointMatch === null) {
-        throw new Error("No matching endpoint");
-      }
-      const methodHandler = endpointMatch.endpoint[method];
-      if (!methodHandler) {
-        throw new Error("Http method not supported");
-      }
-      if (methodHandler.useAuth) {
-        context = new AuthedContext(req, res, await this.authenticator.authenticateRequest(req));
-      }
       context.body = await parseRequestBody(req);
-      context.query = getQueryObjectFromUrl(url);
+      context.query = getQueryObjectFromUrl(req.url);
+      const endpointMatch = getMatchingEndpoint(req, this.endpoints);
       context.params = endpointMatch.params as any;
+      const methodHandler = getMethodHandlerOnEndpoint(req, endpointMatch.endpoint);
+      if (methodHandler.useAuth) {
+        context = new AuthedContext(context, await this.authenticator.authenticateRequest(req));
+      }
       performValidations(methodHandler, context);
       return await methodHandler.handlerFunction(context as any);
     } catch (error) {
@@ -109,20 +96,6 @@ function validRequestMethod(method: string | undefined): method is HttpMethod {
   return supportedMethods.includes(method as string);
 }
 
-function getMatchingEndpoint(url: string, endpoints: BaseEndpoint[]) {
-  const cleanedUrl = url.replace(/\/*$/, "");
-  for (let endpoint of endpoints) {
-    const matchResult = endpoint.urlMatcher?.(cleanedUrl);
-    if (matchResult && matchResult.match) {
-      return {
-        endpoint,
-        params: matchResult.params ?? {},
-      };
-    }
-  }
-  return null;
-}
-
 function parseRequestBody(req: http.IncomingMessage): Promise<any> {
   return new Promise((resolve, reject) => {
     if (!requestContentTypeIsJSON(req)) {
@@ -142,7 +115,10 @@ function parseRequestBody(req: http.IncomingMessage): Promise<any> {
   });
 }
 
-function getQueryObjectFromUrl(url: string) {
+function getQueryObjectFromUrl(url: string | undefined) {
+  if (!url) {
+    return {};
+  }
   try {
     const urlObject = new URL(url);
     const query = {} as any;
@@ -168,6 +144,44 @@ function requestContentTypeIsJSON(httpReq: http.IncomingMessage) {
     return true;
   }
   return false;
+}
+
+function findEndpoint(url: string, endpoints: BaseEndpoint[]) {
+  const cleanedUrl = url.replace(/\/*$/, "");
+  for (let endpoint of endpoints) {
+    const matchResult = endpoint.urlMatcher?.(cleanedUrl);
+    if (matchResult && matchResult.match) {
+      return {
+        endpoint,
+        params: matchResult.params ?? {},
+      };
+    }
+  }
+  return null;
+}
+
+function getMatchingEndpoint(req: http.IncomingMessage, endpoints: BaseEndpoint[]) {
+  const { url } = req;
+  if (typeof url !== "string") {
+    throw createError.badRequest("Invalid request URL");
+  }
+  const endpointMatch = findEndpoint(url, endpoints);
+  if (endpointMatch === null) {
+    throw createError.notFound("No matching endpoint");
+  }
+  return endpointMatch;
+}
+
+function getMethodHandlerOnEndpoint(req: http.IncomingMessage, endpoint: BaseEndpoint) {
+  const { method } = req;
+  if (!validRequestMethod(method)) {
+    throw createError.badRequest("Invalid request method");
+  }
+  const methodHandler = endpoint[method];
+  if (!methodHandler) {
+    throw createError.methodNotAllowed("Method not allowed on this endpoint");
+  }
+  return methodHandler;
 }
 
 export type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
