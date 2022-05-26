@@ -33,6 +33,7 @@ Routing is file based and inferred from the contents of your base directory (bas
 ### Examples
 
 File:
+
 ```./api-routes/resources/books.ts```
 
 Endpoint:
