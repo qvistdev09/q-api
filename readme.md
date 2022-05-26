@@ -28,25 +28,13 @@ api.listen(8080);
 
 ## Routing
 
-Routing is file based and inferred from the contents of your base directory (basePath).
+Routing is file based and inferred from the contents of your base directory (basePath). Dynamic params can be enclosed in curly braces.
 
 ### Examples
 
-File:
+| File      | Endpoint |
+| ----------- | ----------- |
+| ./api-routes/resources/books.ts      | http://localhost:8080/resources/books       |
+| ./api-routes/users/{userId}/interests.ts   | http://localhost:8080/users/00432/interests        |
 
-```./api-routes/resources/books.ts```
-
-Endpoint:
-
-```http://localhost:8080/resources/books```
-
-Dynamic params can be enclosed in curly braces.
-
-File:
-
-```./api-routes/users/{userId}/interests.ts```
-
-Endpoint:
-
-```http://localhost:8080/users/00432/interests```
 
