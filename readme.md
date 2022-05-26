@@ -32,9 +32,9 @@ Routing is file based and inferred from the contents of your base directory (bas
 
 ### Examples
 
-| File      | Endpoint |
-| ----------- | ----------- |
-| ./api-routes/resources/books.ts      | http://localhost:8080/resources/books       |
-| ./api-routes/users/{userId}/interests.ts   | http://localhost:8080/users/00432/interests        |
+| File                                      | Endpoint                                      |
+| ----------------------------------------- | --------------------------------------------- |
+| ./api-routes/resources/books.ts           | http://localhost:8080/resources/books         |
+| ./api-routes/users/{userId}/interests.ts  | http://localhost:8080/users/00432/interests   |
 
 
