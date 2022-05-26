@@ -14,27 +14,17 @@ export class Api {
   errorHandler: ErrorHandler;
   authenticator: Authenticator;
 
-  constructor(authConfig: AuthConfig) {
-    this.endpoints = [];
-    this.services = [];
+  constructor(apiConfig: ApiConfig) {
+    this.services = apiConfig.services;
+    this.endpoints = importEndpoints(apiConfig.basePath, this.services);
     this.authenticator = new Authenticator(
       new PemStore({
-        auth0HostName: authConfig.auth0HostName,
-        cacheLimitInMinutes: authConfig.publicKeyCacheLimitInMinutes ?? 30,
+        auth0HostName: apiConfig.authConfig.auth0HostName,
+        cacheLimitInMinutes: apiConfig.authConfig.publicKeyCacheLimitInMinutes ?? 30,
       })
     );
     this.errorHandler = defaultErrorHandler;
     this.server = http.createServer((req, res) => this.handleRequest(req, res));
-  }
-
-  addServices(services: Service[]) {
-    this.services = services;
-    return this;
-  }
-
-  importEndpoints(basePath: string) {
-    this.endpoints = importEndpoints(basePath, this.services);
-    return this;
   }
 
   async getHandlerResponse(req: http.IncomingMessage, res: http.ServerResponse) {
@@ -85,7 +75,10 @@ function performValidations(methodHandler: MethodHandler, context: Context) {
       const data = context[source];
       const validationResult = validationSchema.validateObject(data, source);
       if (validationResult.errors.length > 0) {
-        throw createError.validationError("message on fail", validationResult.errors);
+        throw createError.validationError(
+          `Request validation error in: ${source}`,
+          validationResult.errors
+        );
       }
     }
   });
@@ -194,6 +187,12 @@ export interface Service {
 export interface AuthConfig {
   auth0HostName: string;
   publicKeyCacheLimitInMinutes?: number;
+}
+
+interface ApiConfig {
+  authConfig: AuthConfig;
+  basePath: string;
+  services: Service[];
 }
 
 class ContextBoundError {
