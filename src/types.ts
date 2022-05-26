@@ -11,10 +11,10 @@ export interface HttpMethodHandlerResponse {
   statusCode: number;
 }
 
-export type HttpMethodHandlerFunction<BodySchema, PathSchema, QuerySchema> = (
-  context: Context<BodySchema, PathSchema, QuerySchema>
+export type HttpMethodHandlerFunction<b, p, q> = (
+  context: Context<b, p, q>
 ) => HttpMethodHandlerResponse | Promise<HttpMethodHandlerResponse>;
 
-export type AuthedHttpMethodHandlerFunction<BodySchema, PathSchema, QuerySchema> = (
-  context: AuthedContext<BodySchema, PathSchema, QuerySchema>
+export type AuthedHttpMethodHandlerFunction<b, p, q> = (
+  context: AuthedContext<b, p, q>
 ) => HttpMethodHandlerResponse | Promise<HttpMethodHandlerResponse>;
