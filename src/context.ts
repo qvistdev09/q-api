@@ -2,32 +2,28 @@ import { IncomingHttpHeaders, IncomingMessage, ServerResponse } from "http";
 import { DecodedUser } from "./auth";
 import { Schema, SchemaDerivedInterface } from "./validation/types";
 
-export class Context<BodySchema = Schema, PathSchema = Schema, QuerySchema = Schema> {
-  httpRes: ServerResponse;
-  httpReq: IncomingMessage;
-  body: SchemaDerivedInterface<BodySchema>;
-  params: SchemaDerivedInterface<PathSchema>;
-  query: SchemaDerivedInterface<QuerySchema>;
+export class Context<b = Schema, p = Schema, q = Schema> {
+  req: IncomingMessage;
+  res: ServerResponse;
+  body: SchemaDerivedInterface<b>;
+  params: SchemaDerivedInterface<p>;
+  query: SchemaDerivedInterface<q>;
   headers: IncomingHttpHeaders;
 
-  constructor(httpReq: IncomingMessage, httpRes: ServerResponse) {
-    this.httpReq = httpReq;
-    this.httpRes = httpRes;
-    this.headers = httpReq.headers;
-    this.body = {} as SchemaDerivedInterface<BodySchema>;
-    this.params = {} as SchemaDerivedInterface<PathSchema>;
-    this.query = {} as SchemaDerivedInterface<QuerySchema>;
+  constructor(req: IncomingMessage, res: ServerResponse) {
+    this.req = req;
+    this.res = res;
+    this.body = {} as SchemaDerivedInterface<b>;
+    this.params = {} as SchemaDerivedInterface<p>;
+    this.query = {} as SchemaDerivedInterface<q>;
+    this.headers = req.headers;
   }
 }
 
-export class AuthedContext<BodySchema, PathSchema, QuerySchema> extends Context<
-  BodySchema,
-  PathSchema,
-  QuerySchema
-> {
+export class AuthedContext<b = Schema, p = Schema, q = Schema> extends Context<b, p, q> {
   user: DecodedUser;
-  constructor(httpReq: IncomingMessage, httpRes: ServerResponse) {
-    super(httpReq, httpRes);
-    this.user = {} as DecodedUser;
+  constructor(req: IncomingMessage, res: ServerResponse, user: DecodedUser) {
+    super(req, res);
+    this.user = user;
   }
 }
