@@ -1,11 +1,11 @@
-import { Context } from "./context";
+import { AuthedContext, Context } from "./context";
 
 export interface ValidationError {
   path: string;
   issue: string;
 }
 
-export type ErrorHandler = (context: Context, err: any) => void;
+export type ErrorHandler = (context: Context | AuthedContext, err: any) => void;
 
 export class ApiError {
   statusCode: number;
@@ -21,17 +21,18 @@ export class ApiError {
 export const defaultErrorHandler: ErrorHandler = (context, err) => {
   console.log(err);
   if (err instanceof ApiError) {
-    context.httpRes.writeHead(err.statusCode, { "Content-Type": "application/json" });
+    context.res.writeHead(err.statusCode, { "Content-Type": "application/json" });
     const errorResponse = { error: err.message, ...(err.data ? { data: err.data } : {}) };
-    context.httpRes.end(JSON.stringify(errorResponse));
+    context.res.end(JSON.stringify(errorResponse));
     return;
   }
-  context.httpRes.writeHead(500, { "Content-Type": "application/json" });
-  context.httpRes.end(JSON.stringify({ error: "Internal server error" }));
+  context.res.writeHead(500, { "Content-Type": "application/json" });
+  context.res.end(JSON.stringify({ error: "Internal server error" }));
   return;
 };
 
 export const createError = {
+  generic: (message: string, statusCode: number) => new ApiError(statusCode, message),
   badRequest: (message: string) => new ApiError(400, message),
   unauthorized: (message: string) => new ApiError(401, message),
   forbidden: (message: string) => new ApiError(403, message),
