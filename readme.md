@@ -37,4 +37,52 @@ Routing is file based and inferred from the contents of your base directory (bas
 | ./api-routes/resources/books.ts           | http://localhost:8080/resources/books         |
 | ./api-routes/users/{userId}/interests.ts  | http://localhost:8080/users/00432/interests   |
 
+## Creating handlers (your API endpoints)
 
+Q-API does not utilize the pattern of many tiny middlewares (like Express). Instead, endpoints are defined as classes by extending the class BaseEndpoint. Injectable services can be defined, which will be injected into an instance of the endpoint class at runtime.
+
+The request body, URL params and URL query can all be validated through schemas.
+
+### Endpoint example
+
+```javascript
+import { BaseEndpoint, number, string } from "q-api";
+
+export class Endpoint extends BaseEndpoint {
+  constructor(private booksService: BooksService) {
+    super();
+  }
+
+  GET = this.createMethodHandler({
+    useAuth: true,
+    handlerFunction: async (context) => {
+      const userBooks = await this.booksService.getUserBooks(context.user.sub);
+      return {
+        data: userBooks,
+        statusCode: 200,
+      };
+    },
+  });
+
+  POST = this.createMethodHandler({
+    useAuth: true,
+    schemas: {
+      body: {
+        data: {
+          title: string().minLength(4).maxLength(50),
+          price: number().integer(),
+        },
+      },
+    },
+    handlerFunction: async (context) => {
+      const newBook = await this.booksService.createBook(context.body.data);
+      return {
+        data: newBook,
+        statusCode: 201,
+      };
+    },
+  });
+}
+
+Endpoint.services = ["BooksService"];
+```
