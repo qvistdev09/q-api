@@ -41,8 +41,8 @@ Endpoint:
 Dynamic params can be enclosed in curly braces.
 
 File:
-`./api-routes/users/{userId}/interests.ts`
+```./api-routes/users/{userId}/interests.ts```
 
 Endpoint:
-`http://localhost:8080/users/00432/interests`
+```http://localhost:8080/users/00432/interests```
 
