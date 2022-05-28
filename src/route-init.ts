@@ -1,12 +1,6 @@
 import FS from "fs";
-import http from "http";
 import { Service } from "./api";
 import { BaseEndpoint } from "./base-endpoint";
-
-export interface UrlMatcherResult {
-  match: boolean;
-  params?: Record<string, string>;
-}
 
 const javascriptFile = /\.js$/;
 
@@ -20,7 +14,6 @@ export const getFilePaths = (baseDirectory: string, filePaths: string[] = []) =>
       filePaths.push(combinedPath);
     }
   });
-  console.log({ filePaths });
   return filePaths;
 };
 
@@ -58,13 +51,14 @@ export const importEndpoints = (baseFolder: string, services: Service[]): BaseEn
   const endpoints: BaseEndpoint[] = [];
   getFilePaths(baseFolder).forEach((filePath) => {
     const { Endpoint } = require(filePath);
-    const requestedServicesNames = Endpoint.services as string[];
-    console.log({ requestedServicesNames, services });
-    // throw error on undefined services
-    const matchedServices = requestedServicesNames.map((name) =>
-      services.find((service) => service.name === name)?.reference
-    );
-    console.log({ matchedServices });
+    const requestedServicesNames = (Endpoint.services ?? []) as string[];
+    const matchedServices = requestedServicesNames.map((name) => {
+      const matchedService = services.find((service) => service.name === name);
+      if (matchedService) {
+        return matchedService.reference;
+      }
+      throw new Error(`Undefined service: ${name}`);
+    });
     const endpoint = new Endpoint(...matchedServices);
     if (endpoint instanceof BaseEndpoint) {
       endpoint.urlMatcher = createUrlMatcherFunction(baseFolder, filePath);
@@ -74,12 +68,7 @@ export const importEndpoints = (baseFolder: string, services: Service[]): BaseEn
   return endpoints;
 };
 
-export const contentTypeJSON = (httpReq: http.IncomingMessage) => {
-  if (
-    httpReq.headers["content-type"] &&
-    httpReq.headers["content-type"].toLowerCase() === "application/json"
-  ) {
-    return true;
-  }
-  return false;
-};
+export interface UrlMatcherResult {
+  match: boolean;
+  params?: Record<string, string>;
+}
