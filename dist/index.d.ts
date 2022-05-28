@@ -1,0 +1,14 @@
+import { Api, ApiConfig } from "./api";
+import { BaseEndpoint } from "./base-endpoint";
+import { createError } from "./errors";
+import { ArrayValidation } from "./validation/array";
+import { BaseValidation } from "./validation/base";
+import { BooleanValidation } from "./validation/boolean";
+import { NumberValidation } from "./validation/number";
+import { StringValidation } from "./validation/string";
+export declare const createApi: (apiConfig: ApiConfig) => Api;
+export declare const number: () => NumberValidation<number>;
+export declare const string: () => StringValidation<string>;
+export declare const boolean: () => BooleanValidation<boolean>;
+export declare const array: <t>(element: BaseValidation<t>) => ArrayValidation<t>;
+export { BaseEndpoint, createError };
