@@ -1,5 +1,5 @@
 {
-  "name": "qvistdev-api",
+  "name": "q-api",
   "version": "0.1.0",
   "main": "dist/index.js",
   "scripts": {
@@ -8,14 +8,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/qvistdev09/qvistdev-api.git"
+    "url": "git+https://github.com/qvistdev09/q-api.git"
   },
   "author": "Oscar Lindqvist",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/qvistdev09/qvistdev-api/issues"
+    "url": "https://github.com/qvistdev09/q-api/issues"
   },
-  "homepage": "https://github.com/qvistdev09/qvistdev-api#readme",
+  "homepage": "https://github.com/qvistdev09/q-api#readme",
   "devDependencies": {
     "@types/node": "^17.0.17",
     "typescript": "^4.5.5"
