@@ -46,7 +46,7 @@ export class NumberValidation<T = number> extends BaseValidation<T> {
     return this;
   }
 
-  lesserThan(threshold: number) {
+  max(threshold: number) {
     this.validatorFunctions.push((validationContainer) => {
       const { originalValue, source, transformedValue, errors } = validationContainer;
       const valueToCheck = source === "body" ? originalValue : transformedValue;
@@ -57,7 +57,7 @@ export class NumberValidation<T = number> extends BaseValidation<T> {
     return this;
   }
 
-  greaterThan(minimum: number) {
+  min(minimum: number) {
     this.validatorFunctions.push((validationContainer) => {
       const { originalValue, source, transformedValue, errors } = validationContainer;
       const valueToCheck = source === "body" ? originalValue : transformedValue;
