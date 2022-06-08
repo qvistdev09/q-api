@@ -10,12 +10,16 @@ export declare class Api {
     errorHandler: ErrorHandler;
     authenticator: Authenticator;
     constructor(apiConfig: ApiConfig);
-    getHandlerResponse(req: http.IncomingMessage, res: http.ServerResponse): Promise<import("./types").HttpMethodHandlerResponse>;
+    getHandlerResult(req: http.IncomingMessage, res: http.ServerResponse): Promise<{
+        data: any;
+        statusCode: number;
+    }>;
     handleRequest(req: http.IncomingMessage, res: http.ServerResponse): void;
     listen(port: number): void;
 }
 export declare const dataSourcesToValidate: readonly ["body", "params", "query"];
-export declare type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
+declare const supportedMethods: readonly ["GET", "PUT", "POST", "DELETE", "PATCH"];
+export declare type HttpMethod = typeof supportedMethods[number];
 export interface Service {
     name: string;
     reference: any;
@@ -29,3 +33,4 @@ export interface ApiConfig {
     basePath: string;
     services: Service[];
 }
+export {};

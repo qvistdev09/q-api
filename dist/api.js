@@ -31,7 +31,7 @@ class Api {
         this.errorHandler = errors_1.defaultErrorHandler;
         this.server = http_1.default.createServer((req, res) => this.handleRequest(req, res));
     }
-    getHandlerResponse(req, res) {
+    getHandlerResult(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             let context = new context_1.Context(req, res);
             try {
@@ -39,12 +39,16 @@ class Api {
                 context.query = getQueryObjectFromUrl(req.url);
                 const endpointMatch = getMatchingEndpoint(req, this.endpoints);
                 context.params = endpointMatch.params;
-                const methodHandler = getMethodHandlerOnEndpoint(req, endpointMatch.endpoint);
+                const { methodHandler, method } = getMethodHandlerOnEndpoint(req, endpointMatch.endpoint);
                 if (methodHandler.useAuth) {
                     context = new context_1.AuthedContext(context, yield this.authenticator.authenticateRequest(req));
                 }
                 performValidations(methodHandler, context);
-                return methodHandler.handlerFunction(context);
+                const handlerData = yield methodHandler.handlerFunction(context);
+                return {
+                    data: handlerData,
+                    statusCode: getStatusCode(method, handlerData),
+                };
             }
             catch (error) {
                 throw new ContextBoundError(context, error);
@@ -52,9 +56,14 @@ class Api {
         });
     }
     handleRequest(req, res) {
-        this.getHandlerResponse(req, res)
-            .then((handlerResponse) => {
-            jsonRespond(res, handlerResponse.data, handlerResponse.statusCode);
+        this.getHandlerResult(req, res)
+            .then(({ data, statusCode }) => {
+            if (data !== undefined) {
+                jsonRespond(res, data, statusCode);
+            }
+            else {
+                statusCodeRespond(res, statusCode);
+            }
         })
             .catch((error) => {
             if (error instanceof ContextBoundError) {
@@ -128,6 +137,9 @@ function jsonRespond(res, data, statusCode) {
     res.writeHead(statusCode, { "Content-Type": "application/json" });
     res.end(JSON.stringify(data));
 }
+function statusCodeRespond(res, statusCode) {
+    res.writeHead(statusCode).end();
+}
 function requestContentTypeIsJSON(httpReq) {
     if (httpReq.headers["content-type"] &&
         httpReq.headers["content-type"].toLowerCase() === "application/json") {
@@ -169,7 +181,29 @@ function getMethodHandlerOnEndpoint(req, endpoint) {
     if (!methodHandler) {
         throw errors_1.createError.methodNotAllowed("Method not allowed on this endpoint");
     }
-    return methodHandler;
+    return { methodHandler, method };
+}
+const statusCodes = {
+    data: {
+        GET: 200,
+        PUT: 200,
+        POST: 201,
+        DELETE: 200,
+        PATCH: 200,
+    },
+    noData: {
+        GET: 204,
+        PUT: 204,
+        POST: 204,
+        DELETE: 204,
+        PATCH: 204,
+    },
+};
+function getStatusCode(method, data) {
+    if (data !== undefined) {
+        return statusCodes.data[method];
+    }
+    return statusCodes.noData[method];
 }
 class ContextBoundError {
     constructor(context, error) {
