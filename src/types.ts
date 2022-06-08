@@ -1,23 +1,14 @@
 import { AuthedContext, Context } from "./context";
 import { Schema } from "./validation/types";
 
-export interface HttpMethodHandlerResponse {
-  data: any;
-  statusCode: number;
-}
-
 export type HttpMethodHandlerFunction<
   BodySchema extends Schema,
   ParamsSchema extends Schema,
   QuerySchema extends Schema
-> = (
-  context: Context<BodySchema, ParamsSchema, QuerySchema>
-) => HttpMethodHandlerResponse | Promise<HttpMethodHandlerResponse>;
+> = (context: Context<BodySchema, ParamsSchema, QuerySchema>) => any | Promise<any>;
 
 export type AuthedHttpMethodHandlerFunction<
   BodySchema extends Schema,
   ParamsSchema extends Schema,
   QuerySchema extends Schema
-> = (
-  context: AuthedContext<BodySchema, ParamsSchema, QuerySchema>
-) => HttpMethodHandlerResponse | Promise<HttpMethodHandlerResponse>;
+> = (context: AuthedContext<BodySchema, ParamsSchema, QuerySchema>) => any | Promise<any>;
