@@ -27,28 +27,36 @@ export class Api {
     this.server = http.createServer((req, res) => this.handleRequest(req, res));
   }
 
-  async getHandlerResponse(req: http.IncomingMessage, res: http.ServerResponse) {
+  async getHandlerResult(req: http.IncomingMessage, res: http.ServerResponse) {
     let context: Context = new Context(req, res);
     try {
       context.body = await parseRequestBody(req);
       context.query = getQueryObjectFromUrl(req.url);
       const endpointMatch = getMatchingEndpoint(req, this.endpoints);
       context.params = endpointMatch.params;
-      const methodHandler = getMethodHandlerOnEndpoint(req, endpointMatch.endpoint);
+      const { methodHandler, method } = getMethodHandlerOnEndpoint(req, endpointMatch.endpoint);
       if (methodHandler.useAuth) {
         context = new AuthedContext(context, await this.authenticator.authenticateRequest(req));
       }
       performValidations(methodHandler, context);
-      return methodHandler.handlerFunction(context as any);
+      const handlerData = await methodHandler.handlerFunction(context as any);
+      return {
+        data: handlerData,
+        statusCode: getStatusCode(method, handlerData),
+      };
     } catch (error) {
       throw new ContextBoundError(context, error);
     }
   }
 
   handleRequest(req: http.IncomingMessage, res: http.ServerResponse) {
-    this.getHandlerResponse(req, res)
-      .then((handlerResponse) => {
-        jsonRespond(res, handlerResponse.data, handlerResponse.statusCode);
+    this.getHandlerResult(req, res)
+      .then(({ data, statusCode }) => {
+        if (data !== undefined) {
+          jsonRespond(res, data, statusCode);
+        } else {
+          statusCodeRespond(res, statusCode);
+        }
       })
       .catch((error) => {
         if (error instanceof ContextBoundError) {
@@ -84,9 +92,10 @@ function performValidations(methodHandler: MethodHandler, context: Context) {
   });
 }
 
-const supportedMethods = ["GET", "PUT", "POST", "DELETE", "PATCH"];
+const supportedMethods = ["GET", "PUT", "POST", "DELETE", "PATCH"] as const;
+
 function validRequestMethod(method: string | undefined): method is HttpMethod {
-  return supportedMethods.includes(method as string);
+  return supportedMethods.includes(method as any);
 }
 
 function parseRequestBody(req: http.IncomingMessage): Promise<any> {
@@ -127,6 +136,10 @@ function getQueryObjectFromUrl(url: string | undefined) {
 function jsonRespond(res: http.ServerResponse, data: any, statusCode: number) {
   res.writeHead(statusCode, { "Content-Type": "application/json" });
   res.end(JSON.stringify(data));
+}
+
+function statusCodeRespond(res: http.ServerResponse, statusCode: number) {
+  res.writeHead(statusCode).end();
 }
 
 function requestContentTypeIsJSON(httpReq: http.IncomingMessage) {
@@ -174,10 +187,37 @@ function getMethodHandlerOnEndpoint(req: http.IncomingMessage, endpoint: BaseEnd
   if (!methodHandler) {
     throw createError.methodNotAllowed("Method not allowed on this endpoint");
   }
-  return methodHandler;
+  return { methodHandler, method };
 }
 
-export type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
+const statusCodes: {
+  data: Record<HttpMethod, number>;
+  noData: Record<HttpMethod, number>;
+} = {
+  data: {
+    GET: 200,
+    PUT: 200,
+    POST: 201,
+    DELETE: 200,
+    PATCH: 200,
+  },
+  noData: {
+    GET: 204,
+    PUT: 204,
+    POST: 204,
+    DELETE: 204,
+    PATCH: 204,
+  },
+};
+
+function getStatusCode(method: HttpMethod, data: any) {
+  if (data !== undefined) {
+    return statusCodes.data[method];
+  }
+  return statusCodes.noData[method];
+}
+
+export type HttpMethod = typeof supportedMethods[number];
 
 export interface Service {
   name: string;
