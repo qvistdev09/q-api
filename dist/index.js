@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createError = exports.BaseEndpoint = exports.array = exports.boolean = exports.string = exports.number = exports.createApi = void 0;
+exports.loadEnv = exports.createError = exports.BaseEndpoint = exports.array = exports.boolean = exports.string = exports.number = exports.createApi = void 0;
 const api_1 = require("./api");
 const base_endpoint_1 = require("./base-endpoint");
 Object.defineProperty(exports, "BaseEndpoint", { enumerable: true, get: function () { return base_endpoint_1.BaseEndpoint; } });
@@ -10,6 +10,8 @@ const array_1 = require("./validation/array");
 const boolean_1 = require("./validation/boolean");
 const number_1 = require("./validation/number");
 const string_1 = require("./validation/string");
+const load_env_1 = require("./load-env");
+Object.defineProperty(exports, "loadEnv", { enumerable: true, get: function () { return load_env_1.loadEnv; } });
 const createApi = (apiConfig) => new api_1.Api(apiConfig);
 exports.createApi = createApi;
 const number = () => new number_1.NumberValidation();
