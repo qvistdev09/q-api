@@ -1,0 +1,21 @@
+export type Source = 'body' | 'header' | 'params' | 'query';
+
+export type PropertyValidationResult<t> =
+  | {
+      isValid: false;
+      errors: string[];
+    }
+  | {
+      isValid: true;
+      value: t;
+    };
+
+export interface IValidator<t> {
+  validate: (value: any, source: Source) => PropertyValidationResult<t>;
+}
+
+export type TypeFromSchema<T> = {
+  [P in keyof T]: T[P] extends IValidator<infer TS> ? TS : TypeFromSchema<T[P]>;
+};
+
+export type Nullable<T> = T | null | undefined;

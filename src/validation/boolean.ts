@@ -1,36 +1,46 @@
-import { BaseValidation } from "./base";
-import { Nullable } from "./types";
+import { Nullable, Source, PropertyValidationResult } from './';
 
-export class BooleanValidation<T = boolean> extends BaseValidation<T> {
-  constructor() {
-    super();
-    this.validatorFunctions.push((validationContainer) => {
-      const { source, errors, originalValue } = validationContainer;
-      if (source === "body" && typeof originalValue === "boolean") {
-        return;
-      }
-      if (source === "body" && typeof originalValue !== "boolean") {
-        errors.push({ issue: "Value is not boolean" });
-        return;
-      }
-      if (originalValue === "true") {
-        validationContainer.transformedValue = true;
-        return;
-      }
-      if (originalValue === "false") {
-        validationContainer.transformedValue = false;
-        return;
-      }
-      errors.push({
-        issue: "Value must be a string that is parseable as boolean, i.e. 'true' or 'false'",
-      });
-    });
-  }
+const createBooleanValidator = <t extends boolean | Nullable<boolean>>(
+  newSpecification?: BoolValidationSpecification
+) => {
 
-  nullable() {
-    const nullableInstance = new BooleanValidation<Nullable<boolean>>();
-    nullableInstance.validatorFunctions = this.validatorFunctions;
-    nullableInstance.isNullable = true;
-    return nullableInstance;
+  const specification = newSpecification ?? {
+    nullable: false,
+  };
+
+  return {
+    nullable: () => {
+      specification.nullable = true;
+      return createBooleanValidator<Nullable<boolean>>(specification);
+    },
+    validate: (value: any, source: Source) => validateBoolean<t>(specification, value, source),
+  };
+  
+};
+
+const validateBoolean = <t extends boolean | Nullable<boolean>>(
+  specification: BoolValidationSpecification,
+  value: any,
+  source: Source
+): PropertyValidationResult<t> => {
+  if (specification.nullable && [null, undefined].includes(value)) {
+    return {
+      isValid: true,
+      value,
+    };
   }
+  if (source === 'body' && typeof value === 'boolean') {
+    return {
+      isValid: true,
+      value: value as t,
+    };
+  }
+  return {
+    isValid: true,
+    value: true as t,
+  };
+};
+
+interface BoolValidationSpecification {
+  nullable: boolean;
 }
