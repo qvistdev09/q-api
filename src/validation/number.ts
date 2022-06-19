@@ -1,70 +1,110 @@
-import { BaseValidation } from "./base";
-import { integerRegex, numberRegex } from "./regexes";
-import { Nullable } from "./types";
+import { PropertyValidationResult, Source } from '.';
+import { Nullable } from './types';
 
-export class NumberValidation<T = number> extends BaseValidation<T> {
-  constructor() {
-    super();
-    this.validatorFunctions.push((validationContainer) => {
-      const { originalValue, errors, source } = validationContainer;
-      if (source === "body") {
-        if (typeof originalValue !== "number") {
-          errors.push({ issue: "Value is not of type number" });
-        }
-      } else {
-        if (typeof originalValue !== "string" || !numberRegex.test(originalValue)) {
-          errors.push({ issue: "String must be parseable as number" });
-        } else {
-          validationContainer.transformedValue = Number.parseFloat(originalValue);
-        }
-      }
-    });
-  }
+const createNumberValidator = <t extends number | Nullable<number>>(
+  newSpecification?: NumberValidationSpecification
+) => {
+  const specification = newSpecification ?? {
+    nullable: false,
+    isInteger: false,
+    maxAllowed: null,
+    minAllowed: null,
+  };
 
-  nullable() {
-    const nullableInstance = new NumberValidation<Nullable<number>>();
-    nullableInstance.validatorFunctions = this.validatorFunctions;
-    nullableInstance.isNullable = true;
-    return nullableInstance;
-  }
+  const getUpdatedValidator = () => {
+    return createNumberValidator<t>(specification);
+  };
 
-  integer() {
-    this.validatorFunctions.push((validationContainer) => {
-      const { originalValue, source, errors } = validationContainer;
-      if (source === "body") {
-        if (!Number.isInteger(originalValue)) {
-          errors.push({ issue: "Value is not integer" });
-        }
-      } else {
-        if (typeof originalValue !== "string" || !integerRegex.test(originalValue)) {
-          errors.push({ issue: "Value must be a string that can be parsed to an integer" });
-        } else {
-          validationContainer.transformedValue = Number.parseInt(originalValue, 10);
-        }
-      }
-    });
-    return this;
-  }
+  return {
+    nullable: () => {
+      specification.nullable = true;
+      return getUpdatedValidator();
+    },
+    max: (max: number) => {
+      specification.maxAllowed = max;
+      return getUpdatedValidator();
+    },
+    min: (min: number) => {
+      specification.minAllowed = min;
+      return getUpdatedValidator();
+    },
+    integer: () => {
+      specification.isInteger = true;
+      return getUpdatedValidator();
+    },
+    validate: (value: any, source: Source) => validateNumber(specification, value, source),
+  };
+};
 
-  max(threshold: number) {
-    this.validatorFunctions.push((validationContainer) => {
-      const { originalValue, source, transformedValue, errors } = validationContainer;
-      const valueToCheck = source === "body" ? originalValue : transformedValue;
-      if (typeof valueToCheck === "number" && valueToCheck > threshold) {
-        errors.push({ issue: `Value cannot be greater than ${threshold}` });
-      }
-    });
-    return this;
+const validateNumber = <t extends number | Nullable<number>>(
+  specification: NumberValidationSpecification,
+  value: any,
+  source: Source
+): PropertyValidationResult<t> => {
+  if (specification.nullable && [null, undefined].includes(value)) {
+    return {
+      isValid: true,
+      value,
+    };
   }
+  if (source === 'body') {
+    const errors: string[] = [];
+    if (typeof value !== 'number') {
+      errors.push('Value must be a number');
+    }
+    errors.push(...checkNumberAgainstSpecification(value, specification));
+    if (errors.length > 0) {
+      return {
+        isValid: false,
+        errors,
+      };
+    }
+    return {
+      isValid: true,
+      value,
+    };
+  }
+  const valueIsParseableString = typeof value === 'string' && numberRegex.test(value);
+  if (!valueIsParseableString) {
+    return {
+      isValid: false,
+      errors: ['Value must be a string that can be parsed as a number'],
+    };
+  }
+  const parsed = Number.parseFloat(value);
+  const errors = checkNumberAgainstSpecification(parsed, specification);
+  if (errors.length > 0) {
+    return {
+      isValid: false,
+      errors,
+    };
+  }
+  return {
+    isValid: true,
+    value: parsed as t,
+  };
+};
 
-  min(minimum: number) {
-    this.validatorFunctions.push((validationContainer) => {
-      const { originalValue, source, transformedValue, errors } = validationContainer;
-      const valueToCheck = source === "body" ? originalValue : transformedValue;
-      if (typeof valueToCheck === "number" && valueToCheck < minimum) {
-        errors.push({ issue: `Value must be greater than ${minimum}` });
-      }
-    });
-    return this;
+const checkNumberAgainstSpecification = (value: number, specification: NumberValidationSpecification) => {
+  const errors: string[] = [];
+  if (specification.maxAllowed && typeof value === 'number' && value > specification.maxAllowed) {
+    errors.push(`Value cannot be greater than ${specification.maxAllowed}`);
   }
+  if (specification.minAllowed && typeof value === 'number' && value < specification.minAllowed) {
+    errors.push(`Value cannot be lesser than ${specification.minAllowed}`);
+  }
+  if (specification.isInteger && !Number.isInteger(value)) {
+    errors.push('Value must be an integer');
+  }
+  return errors;
+};
+
+export const integerRegex = /^[1-9][0-9]*$|^0$/;
+export const numberRegex = /(^[1-9][0-9]*$|^0$)|(^(0|[1-9][0-9]*)\.\d+$)/;
+
+interface NumberValidationSpecification {
+  nullable: boolean;
+  isInteger: boolean;
+  maxAllowed: number | null;
+  minAllowed: number | null;
 }
