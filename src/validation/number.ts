@@ -18,7 +18,7 @@ const createNumberValidator = <t extends number | Nullable<number>>(
   return {
     nullable: () => {
       specification.nullable = true;
-      return getUpdatedValidator();
+      return createNumberValidator<Nullable<number>>(specification);
     },
     max: (max: number) => {
       specification.maxAllowed = max;
