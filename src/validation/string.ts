@@ -1,5 +1,4 @@
-import { PropertyValidationResult, TypeFromSchema } from '.';
-import { BaseValidation } from './base';
+import { PropertyValidationResult } from '.';
 import { Nullable } from './types';
 
 const createStringValidator = <t>(newSpecification?: StringValidationSpecification) => {
@@ -30,20 +29,44 @@ const createStringValidator = <t>(newSpecification?: StringValidationSpecificati
         specification
       );
     },
-    validate: (value: any): PropertyValidationResult<t> => {
-      return {
-        isValid: false,
-        errors: ['f'],
-      };
-    },
+    validate: (value: any) => validateString<t>(specification, value),
   };
 };
 
-const testSchema = {
-  name: createStringValidator<string>().nullable().maxLength(25).minLength(2),
+const validateString = <t>(specification: StringValidationSpecification, value: any): PropertyValidationResult<t> => {
+  if (specification.nullable && [null, undefined].includes(value)) {
+    return {
+      isValid: true,
+      value,
+    };
+  }
+  const errors: string[] = [];
+  if (typeof value !== 'string') {
+    errors.push('Value must be a string');
+  }
+  if (specification.minLength !== null && typeof value === 'string' && value.length < specification.minLength) {
+    errors.push(`String must be at least ${specification.minLength} characters long`);
+  }
+  if (specification.maxLength !== null && typeof value === 'string' && value.length > specification.maxLength) {
+    errors.push(`String cannot be longer than ${specification.minLength} characters`);
+  }
+  if (specification.enum !== null && typeof value === 'string' && !specification.enum.includes(value)) {
+    errors.push(`String must be one of the accepted values: ${specification.enum.join('|')}`);
+  }
+  if (specification.regex !== null && typeof value === 'string' && !specification.regex.test(value)) {
+    errors.push('String does not match regex');
+  }
+  if (errors.length > 0) {
+    return {
+      isValid: false,
+      errors,
+    };
+  }
+  return {
+    isValid: true,
+    value,
+  };
 };
-
-type TestInfer = TypeFromSchema<typeof testSchema>;
 
 interface StringValidationSpecification {
   nullable: boolean;
@@ -51,69 +74,4 @@ interface StringValidationSpecification {
   maxLength: number | null;
   enum: Readonly<string[]> | null;
   regex: RegExp | null;
-}
-
-export class StringValidation<T = string> extends BaseValidation<T> {
-  constructor() {
-    super();
-    this.validatorFunctions.push(validationContainer => {
-      if (typeof validationContainer.originalValue !== 'string') {
-        validationContainer.errors.push({ issue: 'Value is not of type string' });
-      }
-    });
-  }
-
-  nullable() {
-    const nullableInstance = new StringValidation<Nullable<T>>();
-    nullableInstance.validatorFunctions = this.validatorFunctions;
-    nullableInstance.isNullable = true;
-    return nullableInstance;
-  }
-
-  maxLength(limit: number) {
-    this.validatorFunctions.push(validationContainer => {
-      const { originalValue } = validationContainer;
-      if (typeof originalValue === 'string' && originalValue.length > limit) {
-        validationContainer.errors.push({
-          issue: `String cannot be longer than ${limit} characters`,
-        });
-      }
-    });
-    return this;
-  }
-
-  minLength(minCharacters: number) {
-    this.validatorFunctions.push(validationContainer => {
-      const { originalValue } = validationContainer;
-      if (typeof originalValue === 'string' && originalValue.length < minCharacters) {
-        validationContainer.errors.push({
-          issue: `String must be at least ${minCharacters} characters`,
-        });
-      }
-    });
-    return this;
-  }
-
-  enum<e = string>(accepted: Readonly<e[]>) {
-    this.validatorFunctions.push(validationContainer => {
-      const { originalValue } = validationContainer;
-      if (!accepted.includes(originalValue)) {
-        validationContainer.errors.push({
-          issue: `String must be one of [${accepted.join(' | ')}]`,
-        });
-      }
-    });
-    const typeChangedInstance = new StringValidation<e>();
-    typeChangedInstance.validatorFunctions = this.validatorFunctions;
-    return typeChangedInstance;
-  }
-
-  regex(regex: RegExp, onError: string) {
-    this.validatorFunctions.push(validationContainer => {
-      if (!regex.test(validationContainer.originalValue)) {
-        validationContainer.errors.push({ issue: onError });
-      }
-    });
-    return this;
-  }
 }
