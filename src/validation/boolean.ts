@@ -27,15 +27,22 @@ const validateBoolean = <t extends boolean | Nullable<boolean>>(
       value,
     };
   }
-  if (source === 'body' && typeof value === 'boolean') {
+  const errors: { issue: string }[] = [];
+  if (source === 'body' && typeof value !== 'boolean') {
+    errors.push({ issue: 'Value must be a boolean' });
+  }
+  if (source !== 'body' && !['true', 'false'].includes(value)) {
+    errors.push({ issue: 'Value must be a string that can be parsed as a boolean, i.e. "true" or "false"' });
+  }
+  if (errors.length > 0) {
     return {
-      isValid: true,
-      value: value as t,
+      isValid: false,
+      errors,
     };
   }
   return {
     isValid: true,
-    value: true as t,
+    value: source === 'body' ? value : value === 'true' ? true : false,
   };
 };
 

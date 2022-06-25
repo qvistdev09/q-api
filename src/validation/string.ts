@@ -59,7 +59,7 @@ const validateString = <t>(specification: StringValidationSpecification, value: 
   if (errors.length > 0) {
     return {
       isValid: false,
-      errors,
+      errors: errors.map(issue => ({ issue })),
     };
   }
   return {

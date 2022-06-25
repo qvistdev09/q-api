@@ -3,7 +3,7 @@ export type Source = 'body' | 'header' | 'params' | 'query';
 export type PropertyValidationResult<t> =
   | {
       isValid: false;
-      errors: string[];
+      errors: Array<{ issue: string; index?: number }>;
     }
   | {
       isValid: true;

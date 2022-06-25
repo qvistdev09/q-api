@@ -52,7 +52,7 @@ const validateNumber = <t extends number | Nullable<number>>(
     if (errors.length > 0) {
       return {
         isValid: false,
-        errors,
+        errors: errors.map(issue => ({ issue })),
       };
     }
     return {
@@ -64,7 +64,7 @@ const validateNumber = <t extends number | Nullable<number>>(
   if (!valueIsParseableString) {
     return {
       isValid: false,
-      errors: ['Value must be a string that can be parsed as a number'],
+      errors: [{ issue: 'Value must be a string that can be parsed as a number' }],
     };
   }
   const parsed = Number.parseFloat(value);
@@ -72,7 +72,7 @@ const validateNumber = <t extends number | Nullable<number>>(
   if (errors.length > 0) {
     return {
       isValid: false,
-      errors,
+      errors: errors.map(issue => ({ issue })),
     };
   }
   return {
