@@ -11,28 +11,24 @@ const createNumberValidator = <t extends number | Nullable<number>>(
     minAllowed: null,
   };
 
-  const getUpdatedValidator = () => {
-    return createNumberValidator<t>(specification);
-  };
-
   return {
     nullable: () => {
       specification.nullable = true;
-      return createNumberValidator<Nullable<number>>(specification);
+      return createNumberValidator<t extends Nullable<infer TS> ? Nullable<TS> : Nullable<t>>(specification);
     },
     max: (max: number) => {
       specification.maxAllowed = max;
-      return getUpdatedValidator();
+      return createNumberValidator<t>(specification);
     },
     min: (min: number) => {
       specification.minAllowed = min;
-      return getUpdatedValidator();
+      return createNumberValidator<t>(specification);
     },
     integer: () => {
       specification.isInteger = true;
-      return getUpdatedValidator();
+      return createNumberValidator<t>(specification);
     },
-    validate: (value: any, source: Source) => validateNumber(specification, value, source),
+    validate: (value: any, source: Source) => validateNumber<t>(specification, value, source),
   };
 };
 
