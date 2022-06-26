@@ -1,7 +1,7 @@
 import { PropertyValidationResult } from '.';
 import { Nullable } from './types';
 
-const createStringValidator = <t>(newSpecification?: StringValidationSpecification) => {
+export const createStringValidator = <t>(newSpecification?: StringValidationSpecification) => {
   const specification = newSpecification ?? {
     nullable: false,
     minLength: null,

@@ -1,11 +1,43 @@
-import { IValidator, PropertyValidationResult, Source } from '.';
-import { BaseValidation } from './base';
+import { FlattenType, IValidator, PropertyValidationResult, Source, TypeFromSchema } from '.';
+import { createStringValidator } from './string';
 import { Nullable } from './types';
 
-const validateArray = <t extends Array<e> | Nullable<Array<e>>, e>(
+export const createArrayValidator = <t>(
+  elementsValidator: IValidator<any>,
+  newSpecification?: ArrayValidationSpecification
+) => {
+  const validator = elementsValidator;
+  const specification = newSpecification ?? {
+    nullable: false,
+    minElements: null,
+    maxElements: null,
+  };
+
+  return {
+    nullable: () => {
+      specification.nullable = true;
+      return createArrayValidator<t extends Nullable<infer TS> ? Nullable<TS> : Nullable<t>>(validator, specification);
+    },
+    minElements: (min: number) => {
+      specification.minElements = min;
+      return createArrayValidator<t>(validator, specification);
+    },
+    maxElements: (max: number) => {
+      specification.maxElements = max;
+      return createArrayValidator<t>(validator, specification);
+    },
+    validate: (value: any, source: Source) => validateArray<t>(specification, value, validator, source),
+  };
+};
+
+const _createArrayValidator = <t>(validator: IValidator<t>) => {
+  return createArrayValidator<t[]>(validator);
+};
+
+const validateArray = <t>(
   specification: ArrayValidationSpecification,
   value: any,
-  validator: IValidator<e>,
+  validator: IValidator<any>,
   source: Source
 ): PropertyValidationResult<t> => {
   if (!Array.isArray(value)) {
@@ -18,7 +50,7 @@ const validateArray = <t extends Array<e> | Nullable<Array<e>>, e>(
   if (elementsValidationsResults.every(result => result.isValid === true)) {
     return {
       isValid: true,
-      value: value as t,
+      value: value as any as t,
     };
   }
   const errors: { issue: string; index?: number }[] = [];
@@ -43,55 +75,4 @@ interface ArrayValidationSpecification {
   nullable: boolean;
   minElements: null | number;
   maxElements: null | number;
-}
-
-export class ArrayValidation<T> extends BaseValidation<Array<T>> {
-  validator: BaseValidation<T>;
-
-  constructor(validator: BaseValidation<T>) {
-    super();
-    this.validator = validator;
-    this.validatorFunctions.push(validationContainer => {
-      const { originalValue, errors, source } = validationContainer;
-      if (!Array.isArray(originalValue)) {
-        errors.push({ issue: 'Value is not an array' });
-        return;
-      }
-      originalValue.forEach((element, index) => {
-        const elementValidationResult = validator.validateValue(element, source);
-        elementValidationResult.errors = elementValidationResult.errors.map(errorObject => ({
-          issue: errorObject.issue,
-          index,
-        }));
-        validationContainer.errors = [...validationContainer.errors, ...elementValidationResult.errors];
-      });
-    });
-  }
-
-  nullable() {
-    const nullableInstance = new ArrayValidation<Nullable<T>>(this.validator);
-    nullableInstance.validatorFunctions = this.validatorFunctions;
-    nullableInstance.isNullable = true;
-    return nullableInstance;
-  }
-
-  minLength(min: number) {
-    this.validatorFunctions.push(validationContainer => {
-      const { originalValue, errors } = validationContainer;
-      if (Array.isArray(originalValue) && originalValue.length < min) {
-        errors.push({ issue: `Array must have a length that is ${min} minimum` });
-      }
-    });
-    return this;
-  }
-
-  maxLength(max: number) {
-    this.validatorFunctions.push(validationContainer => {
-      const { originalValue, errors } = validationContainer;
-      if (Array.isArray(originalValue) && originalValue.length > max) {
-        errors.push({ issue: `Array must have a length that is ${max} maximum` });
-      }
-    });
-    return this;
-  }
 }
