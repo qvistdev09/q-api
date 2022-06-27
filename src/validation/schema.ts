@@ -14,7 +14,7 @@ export const createObjectValidator = (objectSchema: ObjectSchema) => {
           setValueViaDotNotation(path, validData, propertyValidationResult.value);
         } else {
           propertyValidationResult.errors.forEach(error => {
-            const errorPath = error.index ? `${path}[${error.index}]` : path;
+            const errorPath = error.index !== undefined ? `${path}[${error.index}]` : path;
             errors.push({ path: errorPath, error: error.issue });
           });
         }
