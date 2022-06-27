@@ -1,7 +1,11 @@
 import { IValidator, PropertyValidationResult, Source } from '.';
 import { Nullable } from './types';
 
-export const createArrayValidator = <t>(
+export const createArrayValidator = <t>(validator: IValidator<t>) => {
+  return recreateArrayValidator<t[]>(validator);
+};
+
+export const recreateArrayValidator = <t>(
   elementsValidator: IValidator<any>,
   newSpecification?: ArrayValidationSpecification
 ) => {
@@ -15,22 +19,21 @@ export const createArrayValidator = <t>(
   return {
     nullable: () => {
       specification.nullable = true;
-      return createArrayValidator<t extends Nullable<infer TS> ? Nullable<TS> : Nullable<t>>(validator, specification);
+      return recreateArrayValidator<t extends Nullable<infer TS> ? Nullable<TS> : Nullable<t>>(
+        validator,
+        specification
+      );
     },
     minElements: (min: number) => {
       specification.minElements = min;
-      return createArrayValidator<t>(validator, specification);
+      return recreateArrayValidator<t>(validator, specification);
     },
     maxElements: (max: number) => {
       specification.maxElements = max;
-      return createArrayValidator<t>(validator, specification);
+      return recreateArrayValidator<t>(validator, specification);
     },
     validate: (value: any, source: Source) => validateArray<t>(specification, value, validator, source),
   };
-};
-
-export const _createArrayValidator = <t>(validator: IValidator<t>) => {
-  return createArrayValidator<t[]>(validator);
 };
 
 const validateArray = <t>(
