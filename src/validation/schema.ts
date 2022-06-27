@@ -1,49 +1,68 @@
-import { DataSource, ObjectValidationResult, PairedValidator, Schema } from "./types";
-import {
-  getValidatorsRecursively,
-  getValueViaDotNotation,
-  indexObjectProperties,
-  setValueViaDotNotation,
-} from "./utils";
+import { IValidator, Source } from '.';
+import { getValueViaDotNotation, setValueViaDotNotation } from './utils';
 
-export class SchemaValidation {
-  propertyValidators: PairedValidator[];
-  allowedProperties: string[];
-  schema: Schema;
-
-  constructor(schema: Schema) {
-    this.schema = schema;
-    this.propertyValidators = getValidatorsRecursively(schema);
-    this.allowedProperties = this.propertyValidators.map((validator) => validator.path);
-  }
-
-  validateObject(object: any, source: DataSource): ObjectValidationResult {
-    const objectKeys = indexObjectProperties(object);
-    const validationResult: ObjectValidationResult = {
-      data: {},
-      errors: [],
-    };
-    objectKeys.forEach((key) => {
-      if (!this.allowedProperties.includes(key)) {
-        validationResult.errors.push({
-          path: key,
-          issue: "Non-allowed property",
-        });
-      }
-    });
-    this.propertyValidators.forEach(({ validator, path }) => {
-      const value = getValueViaDotNotation(path, object);
-      const propertyValidationResult = validator.validateValue(value, source);
-      propertyValidationResult.errors.forEach((errorObj) => {
-        validationResult.errors.push({
-          path: errorObj.index !== undefined ? `${path}[${errorObj.index}]` : path,
-          issue: errorObj.issue,
-        });
+export const createObjectValidator = (objectSchema: ObjectSchema) => {
+  const propertyValidators = getValidatorsFromObjectSchema(objectSchema);
+  return {
+    validateObject: (object: any, source: Source) => {
+      const validData: any = {};
+      const errors: { path: string; error: string }[] = [];
+      propertyValidators.forEach(({ validator, path }) => {
+        const value = getValueViaDotNotation(path, object);
+        const propertyValidationResult = validator.validate(value, source);
+        if (propertyValidationResult.isValid) {
+          setValueViaDotNotation(path, validData, propertyValidationResult.value);
+        } else {
+          propertyValidationResult.errors.forEach(error => {
+            const errorPath = error.index ? `${path}[${error.index}]` : path;
+            errors.push({ path: errorPath, error: error.issue });
+          });
+        }
       });
-      const { transformedValue, originalValue } = propertyValidationResult;
-      const returnValue = transformedValue ?? originalValue;
-      setValueViaDotNotation(path, validationResult.data, returnValue);
-    });
-    return validationResult;
-  }
+      if (errors.length === 0) {
+        return {
+          isValid: true,
+          data: validData,
+        };
+      }
+      return {
+        isValid: false,
+        errors,
+      };
+    },
+  };
+};
+
+const getValidatorsFromObjectSchema = (
+  objectSchema: ObjectSchema,
+  paths: string[] = [],
+  validators: ValidatorWithPath[] = []
+) => {
+  const keys = Object.keys(objectSchema);
+  keys.forEach(key => {
+    const next = objectSchema[key];
+    if (isValidator(next)) {
+      validators.push({
+        path: [...paths, key].join('.'),
+        validator: next,
+      });
+    } else if (next) {
+      const branchedPath = [...paths, key];
+      getValidatorsFromObjectSchema(next, branchedPath, validators);
+    }
+  });
+  return validators;
+};
+
+const isValidator = (value: any): value is IValidator<any> => {
+  return typeof value?.validate === 'function';
+};
+
+interface ValidatorWithPath {
+  validator: IValidator<any>;
+  path: string;
 }
+
+type ObjectSchema = {
+  [key: string]: IValidator<any> | ObjectSchema;
+};
