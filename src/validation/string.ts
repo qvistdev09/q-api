@@ -48,7 +48,7 @@ const validateString = <t>(specification: StringValidationSpecification, value: 
     errors.push(`String must be at least ${specification.minLength} characters long`);
   }
   if (specification.maxLength !== null && typeof value === 'string' && value.length > specification.maxLength) {
-    errors.push(`String cannot be longer than ${specification.minLength} characters`);
+    errors.push(`String cannot be longer than ${specification.maxLength} characters`);
   }
   if (specification.enum !== null && typeof value === 'string' && !specification.enum.includes(value)) {
     errors.push(`String must be one of the accepted values: ${specification.enum.join('|')}`);

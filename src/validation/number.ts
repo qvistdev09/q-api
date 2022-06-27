@@ -1,7 +1,7 @@
 import { PropertyValidationResult, Source } from '.';
 import { Nullable } from './types';
 
-const createNumberValidator = <t extends number | Nullable<number>>(
+export const createNumberValidator = <t extends number | Nullable<number>>(
   newSpecification?: NumberValidationSpecification
 ) => {
   const specification = newSpecification ?? {

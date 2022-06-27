@@ -1,5 +1,4 @@
-import { FlattenType, IValidator, PropertyValidationResult, Source, TypeFromSchema } from '.';
-import { createStringValidator } from './string';
+import { IValidator, PropertyValidationResult, Source } from '.';
 import { Nullable } from './types';
 
 export const createArrayValidator = <t>(
@@ -30,7 +29,7 @@ export const createArrayValidator = <t>(
   };
 };
 
-const _createArrayValidator = <t>(validator: IValidator<t>) => {
+export const _createArrayValidator = <t>(validator: IValidator<t>) => {
   return createArrayValidator<t[]>(validator);
 };
 
@@ -46,28 +45,28 @@ const validateArray = <t>(
       errors: [{ issue: 'Value must be an array' }],
     };
   }
-  const elementsValidationsResults = value.map(element => validator.validate(element, source));
-  if (elementsValidationsResults.every(result => result.isValid === true)) {
-    return {
-      isValid: true,
-      value: value as any as t,
-    };
-  }
   const errors: { issue: string; index?: number }[] = [];
-  elementsValidationsResults.forEach((result, index) => {
-    if (!result.isValid) {
-      errors.push(...result.errors.map(error => ({ issue: error.issue, index })));
-    }
-  });
   if (specification.minElements !== null && value.length < specification.minElements) {
     errors.push({ issue: `Array must contain at least ${specification.minElements} elements` });
   }
   if (specification.maxElements !== null && value.length > specification.maxElements) {
     errors.push({ issue: `Array must not contain more than ${specification.maxElements} elements` });
   }
+  const elementsValidationsResults = value.map(element => validator.validate(element, source));
+  elementsValidationsResults.forEach((result, index) => {
+    if (!result.isValid) {
+      errors.push(...result.errors.map(error => ({ issue: error.issue, index })));
+    }
+  });
+  if (errors.length > 0) {
+    return {
+      isValid: false,
+      errors,
+    };
+  }
   return {
-    isValid: false,
-    errors,
+    isValid: true,
+    value: value as any as t,
   };
 };
 
